@@ -1,0 +1,5 @@
+flowchart LR
+  L[Linux Kernel] --> D[Docker Engine]
+  D --> I[Versioned Image]
+  I --> C[Inference Container]
+  C --> A[FastAPI + ONNX Runtime]

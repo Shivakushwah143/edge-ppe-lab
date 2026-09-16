@@ -1,0 +1,30 @@
+$ top -b -n1 | head
+top - 15:23:54 up 21 min,  0 users,  load average: 0.65, 0.21, 0.07
+Tasks:  17 total,   1 running,  16 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :   5948.0 total,   4637.3 free,   1088.9 used,    541.4 buff/cache     
+MiB Swap:      0.0 total,      0.0 free,      0.0 used.   4859.1 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+      1 root      20   0   39700  25900   6712 S   0.0   0.4   0:00.76 supervi+
+      3 root      20   0  275548   2032   1632 S   0.0   0.0   0:00.00 log_for+
+     24 root      20   0    4456   1840   1532 S   0.0   0.0   0:00.00 bash
+     51 root      20   0    2980    808    700 S   0.0   0.0   0:00.00 sleep
+    205 root      20   0  275548   1996   1632 S   0.0   0.0   0:00.00 log_for+
+    233 root      20   0    4456   1876   1560 S   0.0   0.0   0:00.00 bash
+    240 root      20   0  275548   1992   1632 S   0.0   0.0   0:00.00 log_for+
+    242 oai       20   0   19556   2260   1844 S   0.0   0.0   0:00.07 tini
+    268 root      20   0    4456   1868   1556 S   0.0   0.0   0:00.00 bash
+    269 oai       20   0    4456   1824   1512 S   0.0   0.0   0:00.00 start-s+
+    287 oai       20   0  190428  73712  12732 S   0.0   1.2   0:04.14 python
+    288 oai       20   0   57324  39872   7984 S   0.0   0.7   0:03.02 python
+    301 oai       20   0  577732 138776  21828 S   0.0   2.3   0:02.28 python
+$ free -h
+               total        used        free      shared  buff/cache   available
+Mem:           5.8Gi       1.1Gi       4.5Gi        20Ki       541Mi       4.7Gi
+Swap:             0B          0B          0B
+$ df -h .
+Filesystem      Size  Used Avail Use% Mounted on
+overlay          32G   20M   30G   1% /
+$ du -sh var
+20K	var

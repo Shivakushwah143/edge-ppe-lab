@@ -1,0 +1,7 @@
+flowchart LR
+  U[Ubuntu] --> P[Process / systemd]
+  P --> F[FastAPI / Uvicorn]
+  F --> R[ONNX Runtime]
+  R --> M[Validated model.onnx]
+  F --> L[Logs]
+  F --> X[Metrics]

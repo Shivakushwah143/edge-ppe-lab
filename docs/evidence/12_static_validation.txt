@@ -1,0 +1,18 @@
+$ python -m compileall -q app scripts tests
+exit=0
+
+$ python -m pytest -q tests
+....                                                                     [100%]
+4 passed in 0.09s
+exit=0
+
+$ bash -n scripts/*.sh deploy/systemd/install.sh
+exit=0
+
+$ python -c YAML parse CI
+dict loaded True
+exit=0
+
+$ systemd-analyze verify deploy/systemd/edge-ppe.service
+edge-ppe.service: Command /opt/edge-ppe-lab/.venv/bin/uvicorn is not executable: No such file or directory
+exit=1

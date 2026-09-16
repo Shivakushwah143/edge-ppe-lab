@@ -1,0 +1,13 @@
+.venv
+.git
+__pycache__
+.pytest_cache
+data/raw
+data/processed
+var/mlflow
+var/training
+var/model-cache
+var/releases
+*.pt
+*.onnx
+*.log

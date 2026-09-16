@@ -1,0 +1,7 @@
+stateDiagram-v2
+  [*] --> V1
+  V1 --> ProdV1: champion -> v1
+  ProdV1 --> V2
+  V2 --> ProdV2: champion -> v2
+  ProdV2 --> Failure
+  Failure --> ProdV1: rollback champion -> v1

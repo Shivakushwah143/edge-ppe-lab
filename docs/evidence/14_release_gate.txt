@@ -1,0 +1,14 @@
+$ python scripts/set_champion.py --release v9
+Traceback (most recent call last):
+  File "/mnt/data/edge-ppe-lab/scripts/set_champion.py", line 71, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/data/edge-ppe-lab/scripts/set_champion.py", line 42, in main
+    require_qualified(metadata, release)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/edge-ppe-lab/scripts/common.py", line 76, in require_qualified
+    raise RuntimeError(
+    ...<2 lines>...
+    )
+RuntimeError: refusing to promote v9: parity_status='failed'; run PT↔ONNX parity validation first
+exit=1

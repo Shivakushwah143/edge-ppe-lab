@@ -1,0 +1,9 @@
+flowchart LR
+  D[Small PPE Dataset] --> T[YOLO / PyTorch Training]
+  T --> C[best.pt]
+  T --> M[MLflow Run]
+  C --> M
+  M --> R[MLflow Registry]
+  C --> O[ONNX Export]
+  O --> P[Parity Validation]
+  P --> A[FastAPI + ONNX Runtime]

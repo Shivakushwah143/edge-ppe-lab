@@ -1,0 +1,8 @@
+path: data/processed/ppe-v1
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: Person
+  1: Hardhat
+  2: NO-Hardhat

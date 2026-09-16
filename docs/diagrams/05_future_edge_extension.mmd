@@ -1,0 +1,8 @@
+flowchart LR
+  C[CCTV] --> R[RTSP]
+  R --> D[Decode]
+  D --> M[YOLO / RT-DETR]
+  M --> T[Tracking]
+  T --> O[ONNX / TensorRT]
+  O --> J[Jetson / Linux GPU]
+  J --> X[Monitoring]

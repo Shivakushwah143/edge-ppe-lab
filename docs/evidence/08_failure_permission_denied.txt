@@ -1,0 +1,5 @@
+$ ls -l /tmp/edge-ppe-private-model.onnx
+-rw------- 1 root root 16 Sep 16 15:23 /tmp/edge-ppe-private-model.onnx
+$ su nobody -c cat ...
+cat: /tmp/edge-ppe-private-model.onnx: Permission denied
+exit=1

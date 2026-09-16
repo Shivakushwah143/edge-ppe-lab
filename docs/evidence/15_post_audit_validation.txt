@@ -1,0 +1,91 @@
+EdgePPE Lab post-audit validation
+timestamp=2026-09-16T15:39:06Z
+
+$ python -m compileall -q app scripts tests
+exit=0
+
+$ python -m pytest -q
+.......                                                                  [100%]
+7 passed in 0.09s
+
+$ bash -n scripts/*.sh deploy/systemd/install.sh
+exit=0
+
+$ python YAML parse .github/workflows/ci.yml
+workflow_mapping= True
+
+$ python scripts/verify_components.py
+{
+  "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "modules": {
+    "torch": {
+      "available": true,
+      "version": "2.10.0+cpu"
+    },
+    "ultralytics": {
+      "available": false,
+      "error": "ModuleNotFoundError: No module named 'ultralytics'"
+    },
+    "mlflow": {
+      "available": false,
+      "error": "ModuleNotFoundError: No module named 'mlflow'"
+    },
+    "onnx": {
+      "available": false,
+      "error": "ModuleNotFoundError: No module named 'onnx'"
+    },
+    "onnxruntime": {
+      "available": false,
+      "error": "ModuleNotFoundError: No module named 'onnxruntime'"
+    },
+    "fastapi": {
+      "available": true,
+      "version": "0.128.2"
+    },
+    "uvicorn": {
+      "available": true,
+      "version": "0.48.0"
+    },
+    "prometheus_client": {
+      "available": true,
+      "version": "unknown"
+    },
+    "cv2": {
+      "available": true,
+      "version": "4.13.0"
+    }
+  },
+  "commands": {
+    "git": {
+      "path": "/usr/bin/git",
+      "available": true
+    },
+    "docker": {
+      "path": null,
+      "available": false
+    },
+    "systemctl": {
+      "path": "/usr/bin/systemctl",
+      "available": true,
+      "state": "offline"
+    },
+    "ss": {
+      "path": "/usr/bin/ss",
+      "available": true
+    },
+    "curl": {
+      "path": "/usr/local/bin/curl",
+      "available": true
+    }
+  }
+}
+
+$ command -v docker
+
+$ systemctl is-system-running
+offline
+
+$ grep implementation for forbidden platform additions
+
+$ grep promotion bypass flags

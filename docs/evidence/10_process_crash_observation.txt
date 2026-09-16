@@ -1,0 +1,6 @@
+$ ps before
+    PID STAT CMD
+   1111 S    sleep 30
+$ kill
+$ ps after
+    PID STAT CMD

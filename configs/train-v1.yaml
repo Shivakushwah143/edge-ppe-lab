@@ -1,0 +1,11 @@
+release: v1
+model: yolo11n.pt
+data: data/ppe.yaml
+epochs: 1
+imgsz: 320
+batch: 8
+device: cpu
+workers: 2
+seed: 42
+fraction: 1.0
+lr0: 0.01

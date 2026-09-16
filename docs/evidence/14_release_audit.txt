@@ -1,0 +1,37 @@
+# Release audit evidence
+UTC 2026-09-16T15:36:20Z
+
+## Required build-phase documents
+OK START_HERE.md
+OK docs/IMPLEMENTATION_REPORT.md
+OK docs/VERIFICATION_REPORT.md
+OK docs/KNOWN_LIMITATIONS.md
+OK docs/REQUIREMENTS_TRACEABILITY.md
+OK docs/FAILURE_VERIFICATION.md
+
+## Required implementation surfaces
+OK app/main.py
+OK app/model_runtime.py
+OK scripts/prepare_dataset.py
+OK scripts/train.py
+OK scripts/register_model.py
+OK scripts/export_onnx.py
+OK scripts/validate_parity.py
+OK scripts/set_champion.py
+OK deploy/systemd/edge-ppe.service
+OK docker/Dockerfile
+OK .github/workflows/ci.yml
+
+## Clean-release forbidden paths
+
+## Binary model/cache artifacts packaged
+
+## Placeholder/source audit
+
+## Forbidden architecture implementation audit
+
+## Potential secret pattern audit
+
+## File count and size
+97
+512K	.

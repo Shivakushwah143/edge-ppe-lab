@@ -1,0 +1,25 @@
+$ EDGE_PPE_MODEL_PATH=/tmp/not-a-real-model.onnx EDGE_PPE_STARTUP_STRICT=true uvicorn ...
+INFO:     Started server process [1064]
+INFO:     Waiting for application startup.
+2026-09-16 15:23:52,944 ERROR edge_ppe model_startup_failed
+Traceback (most recent call last):
+  File "/mnt/data/edge-ppe-lab/app/main.py", line 26, in lifespan
+    runtime = RuntimeModel.from_settings(settings)
+  File "/mnt/data/edge-ppe-lab/app/model_runtime.py", line 109, in from_settings
+    raise RuntimeError("EDGE_PPE_MODEL_VERSION is required when EDGE_PPE_MODEL_PATH is used")
+RuntimeError: EDGE_PPE_MODEL_VERSION is required when EDGE_PPE_MODEL_PATH is used
+ERROR:    Traceback (most recent call last):
+  File "/opt/pyvenv/lib/python3.13/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+               ~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/usr/lib/python3.13/contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/edge-ppe-lab/app/main.py", line 26, in lifespan
+    runtime = RuntimeModel.from_settings(settings)
+  File "/mnt/data/edge-ppe-lab/app/model_runtime.py", line 109, in from_settings
+    raise RuntimeError("EDGE_PPE_MODEL_VERSION is required when EDGE_PPE_MODEL_PATH is used")
+RuntimeError: EDGE_PPE_MODEL_VERSION is required when EDGE_PPE_MODEL_PATH is used
+
+ERROR:    Application startup failed. Exiting.
+exit=3

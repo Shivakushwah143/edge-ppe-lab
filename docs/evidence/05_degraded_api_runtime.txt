@@ -1,0 +1,51 @@
+$ curl /health
+HTTP/1.1 200 OK
+date: Wed, 16 Sep 2026 15:23:50 GMT
+server: uvicorn
+content-length: 18
+content-type: application/json
+
+{"status":"alive"}
+$ curl /ready
+HTTP/1.1 503 Service Unavailable
+date: Wed, 16 Sep 2026 15:23:50 GMT
+server: uvicorn
+content-length: 105
+content-type: application/json
+
+{"detail":{"ready":false,"error":"RuntimeError: MLflow is required to resolve the champion model alias"}}
+$ curl /metrics | grep
+# HELP inference_requests_total Total inference requests
+inference_requests_total 0.0
+# HELP model_info Loaded model identity
+
+$ ps
+    PID    PPID CMD
+   1011     972 /opt/pyvenv/bin/python3 /opt/pyvenv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8091
+
+$ ss
+LISTEN 0      0          127.0.0.1:8091       0.0.0.0:*    users:(("uvicorn",pid=1011,fd=13))
+
+$ log
+INFO:     Started server process [1011]
+INFO:     Waiting for application startup.
+2026-09-16 15:23:50,954 ERROR edge_ppe model_startup_failed
+Traceback (most recent call last):
+  File "/mnt/data/edge-ppe-lab/app/model_runtime.py", line 123, in from_settings
+    import mlflow
+ModuleNotFoundError: No module named 'mlflow'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/mnt/data/edge-ppe-lab/app/main.py", line 26, in lifespan
+    runtime = RuntimeModel.from_settings(settings)
+  File "/mnt/data/edge-ppe-lab/app/model_runtime.py", line 126, in from_settings
+    raise RuntimeError("MLflow is required to resolve the champion model alias") from exc
+RuntimeError: MLflow is required to resolve the champion model alias
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8091 (Press CTRL+C to quit)
+INFO:     127.0.0.1:48162 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48164 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48172 - "GET /ready HTTP/1.1" 503 Service Unavailable
+INFO:     127.0.0.1:48184 - "GET /metrics HTTP/1.1" 200 OK
