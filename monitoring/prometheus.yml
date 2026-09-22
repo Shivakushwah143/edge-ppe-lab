@@ -1,0 +1,42 @@
+# Minimal local Prometheus configuration for EdgePPE Lab.
+#
+# Scope: one scrape job for the already-running EdgePPE API. This file adds
+# monitoring only -- it does not change the application, the model registry,
+# ONNX artifacts or deployment logic.
+#
+# The target is the existing Docker API container (edgeppe-api, published on
+# host port 18000). Prometheus itself runs in a container, so it reaches the
+# published port through the Docker host gateway rather than 127.0.0.1.
+# `scripts/start_prometheus.sh` maps that name with
+# `--add-host=host.docker.internal:host-gateway`, so this works on both Docker
+# Desktop (Windows/WSL2) and native Linux Docker.
+#
+# If you would rather scrape the host systemd unit `edge-ppe` (which serves the
+# same app on :8000), add a second target below. Note that each process keeps
+# its own counter state, so the two instances report independent series.
+
+global:
+  # Short interval so histogram rate() queries become meaningful quickly in a
+  # lab session. The application histogram default buckets are used as-is.
+  scrape_interval: 5s
+  scrape_timeout: 4s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: edgeppe-api
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets:
+          - host.docker.internal:18000
+        labels:
+          service: edgeppe-api
+          runtime: docker
+          environment: local
+      # Host systemd instance (same app, separate process) -- enable to scrape:
+      # - targets:
+      #     - host.docker.internal:8000
+      #   labels:
+      #     service: edgeppe-api
+      #     runtime: systemd
+      #     environment: local

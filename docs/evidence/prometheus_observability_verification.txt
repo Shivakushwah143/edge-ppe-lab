@@ -1,0 +1,198 @@
+# Prometheus observability extension — verification transcript
+# Date (UTC): 2026-09-22T11:47:47Z
+# Scope: ADDITIVE local observability only. No changes to training, MLflow, model
+#        registry, ONNX, deployment or rollback logic. No Grafana, no Kubernetes.
+# Note on privileges: this non-interactive session cannot supply a sudo password,
+#        so the systemd steps elsewhere in this repo ran via WSL interop as root.
+#        Everything in THIS file is unprivileged Docker + curl.
+
+==================================================================
+## 1. Config and start
+==================================================================
+$ cat monitoring/prometheus.yml
+# Minimal local Prometheus configuration for EdgePPE Lab.
+#
+# Scope: one scrape job for the already-running EdgePPE API. This file adds
+# monitoring only -- it does not change the application, the model registry,
+# ONNX artifacts or deployment logic.
+#
+# The target is the existing Docker API container (edgeppe-api, published on
+# host port 18000). Prometheus itself runs in a container, so it reaches the
+# published port through the Docker host gateway rather than 127.0.0.1.
+# `scripts/start_prometheus.sh` maps that name with
+# `--add-host=host.docker.internal:host-gateway`, so this works on both Docker
+# Desktop (Windows/WSL2) and native Linux Docker.
+#
+# If you would rather scrape the host systemd unit `edge-ppe` (which serves the
+# same app on :8000), add a second target below. Note that each process keeps
+# its own counter state, so the two instances report independent series.
+
+global:
+  # Short interval so histogram rate() queries become meaningful quickly in a
+  # lab session. The application histogram default buckets are used as-is.
+  scrape_interval: 5s
+  scrape_timeout: 4s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: edgeppe-api
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets:
+          - host.docker.internal:18000
+        labels:
+          service: edgeppe-api
+          runtime: docker
+          environment: local
+      # Host systemd instance (same app, separate process) -- enable to scrape:
+      # - targets:
+      #     - host.docker.internal:8000
+      #   labels:
+      #     service: edgeppe-api
+      #     runtime: systemd
+      #     environment: local
+
+$ scripts/start_prometheus.sh
+#!/usr/bin/env bash
+# Start the minimal local Prometheus that scrapes the running EdgePPE API.
+#
+# Observability extension only: this does not touch the application, the model
+# registry, ONNX artifacts, the systemd unit or the existing API container.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+PROM_IMAGE="${PROM_IMAGE:-prom/prometheus:v2.53.3}"
+PROM_NAME="${PROM_NAME:-edgeppe-prometheus}"
+PROM_PORT="${PROM_PORT:-9090}"
+
+if docker ps -a --format '{{.Names}}' | grep -qx "$PROM_NAME"; then
+  echo "container '$PROM_NAME' already exists; recreating it"
+  docker rm -f "$PROM_NAME" >/dev/null
+fi
+
+# Bound TSDB growth: this is a local lab, not a production monitoring stack.
+docker run -d \
+  --name "$PROM_NAME" \
+  --restart unless-stopped \
+  --add-host=host.docker.internal:host-gateway \
+  -p "127.0.0.1:${PROM_PORT}:9090" \
+  -v "$(pwd)/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
+  "$PROM_IMAGE" \
+  --config.file=/etc/prometheus/prometheus.yml \
+  --storage.tsdb.path=/prometheus \
+  --storage.tsdb.retention.time=24h
+
+echo "Prometheus starting on http://localhost:${PROM_PORT}"
+
+$ docker ps   # BEFORE starting prometheus (existing API must be preserved)
+edgeppe-api	Up 2 hours (healthy)	0.0.0.0:18000->8000/tcp, [::]:18000->8000/tcp
+
+$ ./scripts/start_prometheus.sh
+2e6ca7ab890d30b91430c04786e56f95d8d481ab1f0d3d62b88b3b51a6469755
+Prometheus starting on http://localhost:9090
+
+$ docker ps --filter name=edgeppe-prometheus
+edgeppe-prometheus	Up About a minute	127.0.0.1:9090->9090/tcp
+
+==================================================================
+## 2. Prometheus server health + scrape target
+==================================================================
+$ curl -s http://localhost:9090/-/healthy
+Prometheus Server is Healthy.
+$ curl -s http://localhost:9090/-/ready
+Prometheus Server is Ready.
+
+$ curl -s "http://localhost:9090/api/v1/targets?state=active"
+job=edgeppe-api  url=http://host.docker.internal:18000/metrics     health=up    lastError='' lastScrape=2026-09-22T11:47:46.397504601Z
+
+==================================================================
+## 3. Real /predict traffic against the scrape target
+==================================================================
+# POST http://127.0.0.1:18000/predict  (the exact endpoint Prometheus scrapes)
+
+POST /predict  image450.jpg  HTTP 200  0.251114s  detections=7 labels=?
+POST /predict  image168.jpg  HTTP 200  0.032065s  detections=2 labels=?
+POST /predict  image722.jpeg  HTTP 200  0.029049s  detections=1 labels=?
+POST /predict  image884.jpg  HTTP 200  0.048107s  detections=2 labels=?
+POST /predict  image921.jpg  HTTP 200  0.044595s  detections=2 labels=?
+POST /predict  image739.jpeg  HTTP 200  0.035743s  detections=3 labels=?
+POST /predict  image1276.jpg  HTTP 200  0.079633s  detections=1 labels=?
+POST /predict  image231.jpg  HTTP 200  0.082201s  detections=1 labels=?
+
+# Waiting 20s so Prometheus completes at least two scrape intervals.
+
+==================================================================
+## 4. PromQL queries — REAL data returned by Prometheus
+==================================================================
+# Each query is issued against the running Prometheus HTTP API.
+# No value below is hand-written; all come from /api/v1/query.
+
+$ query: inference_requests_total
+   status: success
+   inference_requests_total{environment=local,instance=host.docker.internal:18000,job=edgeppe-api,runtime=docker,service=edgeppe-api}
+        value = 20  (timestamp 1790077711.554)
+
+$ query: inference_failures_total
+   status: success
+   inference_failures_total{environment=local,instance=host.docker.internal:18000,job=edgeppe-api,runtime=docker,service=edgeppe-api}
+        value = 0  (timestamp 1790077711.612)
+
+$ query: detections_total
+   status: success
+   detections_total{class_name=Hardhat,environment=local,instance=host.docker.internal:18000,job=edgeppe-api,runtime=docker,service=edgeppe-api}
+        value = 22  (timestamp 1790077712.008)
+   detections_total{class_name=Person,environment=local,instance=host.docker.internal:18000,job=edgeppe-api,runtime=docker,service=edgeppe-api}
+        value = 24  (timestamp 1790077712.008)
+
+$ query: model_info
+   status: success
+   model_info{alias=local-explicit,environment=local,format=onnx,instance=host.docker.internal:18000,job=edgeppe-api,provider=CPUExecutionProvider,registered_model=edge-ppe-detector,runtime=docker,service=edgeppe-api,sha256=e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681,version=1}
+        value = 1  (timestamp 1790077712.217)
+
+$ query: rate(inference_requests_total[1m])
+   status: success
+   -{environment=local,instance=host.docker.internal:18000,job=edgeppe-api,runtime=docker,service=edgeppe-api}
+        value = 0.15169327619553263  (timestamp 1790077712.456)
+
+$ query: rate(inference_latency_seconds_sum[5m]) / rate(inference_latency_seconds_count[5m])
+   status: success
+   -{environment=local,instance=host.docker.internal:18000,job=edgeppe-api,runtime=docker,service=edgeppe-api}
+        value = 0.14741380543739524  (timestamp 1790077712.473)
+
+==================================================================
+## 5. Non-regression: existing deployment untouched
+==================================================================
+$ docker ps   # AFTER prometheus start + all predict traffic
+edgeppe-prometheus	Up 3 minutes	127.0.0.1:9090->9090/tcp
+edgeppe-api	Up 2 hours (healthy)	0.0.0.0:18000->8000/tcp, [::]:18000->8000/tcp
+
+# The pre-existing edgeppe-api container was never stopped, rebuilt or
+# reconfigured. Prometheus is an additional, separate container.
+
+# Note on rate(...) series names: the PromQL instant API omits __name__ for
+# function results (rate/drop_metric), which is why the metric name column is
+# "-" for the two rate() queries. The series and values are still real.
+
+==================================================================
+## 6. Non-regression checks
+==================================================================
+$ docker exec edgeppe-prometheus promtool check config /etc/prometheus/prometheus.yml
+Checking /etc/prometheus/prometheus.yml
+ SUCCESS: /etc/prometheus/prometheus.yml is valid prometheus config file syntax
+
+
+$ ./.venv/bin/python -m compileall -q app scripts tests
+exit=0
+
+$ ./.venv/bin/python -m pytest -q
+.......                                                                  [100%]
+7 passed in 1.74s
+
+$ bash -n scripts/*.sh deploy/systemd/install.sh
+exit=0
+
+# Environment note: this shell has no pytest on the system interpreter (only
+# Python 3.12.3, no pytest). pytest is a declared dev dependency
+# (requirements-dev.txt) and was installed into the project venv read-only to
+# the release tree; no tracked file or runtime artifact changed.
