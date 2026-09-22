@@ -1,0 +1,57 @@
+# Real rollback: champion v2 -> v1
+timestamp: 2026-09-22T10:01:00Z
+
+## champion BEFORE rollback
+version 2
+
+## COMMAND: set_champion.py --release v1
+{
+  "registered_model": "edge-ppe-detector",
+  "alias": "champion",
+  "concrete_version": "1",
+  "release": "v1",
+  "changed_at": "2026-09-22T10:01:02.887535+00:00"
+}
+
+## champion AFTER rollback (via MLflow API)
+champion version: 1 | run_id: c283e4ec5f504ba9864354342a802d68
+tags: {'release': 'v1', 'dataset_version': 'ppe-v1', 'checkpoint_artifact_path': 'checkpoints/best.pt', 'parity_status': 'passed', 'onnx_artifact_path': 'deployment/v1/model.onnx', 'onnx_sha256': 'e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681', 'release_status': 'champion'}
+
+## var/deployment/champion.json
+{
+  "registered_model": "edge-ppe-detector",
+  "alias": "champion",
+  "concrete_version": "1",
+  "release": "v1",
+  "changed_at": "2026-09-22T10:01:02.887535+00:00"
+}
+
+## redeploy service (registry mode, champion alias)
+old pid: 9284 
+new pid: 9508 
+
+## POST-ROLLBACK SERVICE VERIFICATION
+GET /health -> {"status":"alive"} [200]
+GET /ready -> {"ready":true,"model_version":"1"} [200]
+GET /model-info -> version 1 | alias champion | sha256 e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681 | provider ['CPUExecutionProvider']
+GET /predict ->
+  version 1 | detections: [('Hardhat', 0.8832), ('Person', 0.8645)] [200 0.063533s]
+
+## model_info metric (rollback)
+model_info{alias="champion",format="onnx",provider="CPUExecutionProvider",registered_model="edge-ppe-detector",sha256="e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681",version="1"} 1.0
+
+## DOCKER redeploy with valid v1 config (restores working deployment)
+$ docker run -d --name edgeppe-api -p 18000:8000 -v var/releases/v1/model.onnx:/app/models/model.onnx:ro -e EDGE_PPE_MODEL_PATH=/app/models/model.onnx -e EDGE_PPE_MODEL_VERSION=1 edge-ppe-lab:local
+
+## POST-ROLLBACK DOCKER VERIFICATION
+container status=running health=starting exit_code=0
+GET /health -> {"status":"alive"} [200]
+GET /ready -> {"ready":true,"model_version":"1"} [200]
+GET /model-info -> version 1 | alias local-explicit | sha256 e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681 | provider ['CPUExecutionProvider']
+GET /metrics (model_info) ->
+model_info{alias="local-explicit",format="onnx",provider="CPUExecutionProvider",registered_model="edge-ppe-detector",sha256="e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681",version="1"} 1.0
+POST /predict ->
+  version 1 | detections: [('Hardhat', 0.8832), ('Person', 0.8645)] [200 0.068775s]
+
+## FINAL champion state (MLflow API)
+champion: 1 | aliases: ['champion']

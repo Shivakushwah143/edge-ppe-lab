@@ -1,4 +1,15 @@
-mlflow==3.16.0
+# Runtime dependencies ONLY - installed inside the CPU-first inference image.
+#
+# Deliberately absent: torch, ultralytics, onnx, pandas.
+# This host has no NVIDIA GPU; inference always runs through onnxruntime
+# (CPUExecutionProvider) against a parity-qualified .onnx artifact.
+# Training/registration dependencies live in requirements.txt and stay on the host.
+#
+# mlflow-skinny (not mlflow) is intentional: the runtime only needs
+# mlflow.set_tracking_uri + MlflowClient (champion alias lookup + artifact
+# download). Full mlflow would additionally pull pandas, matplotlib, scipy,
+# scikit-learn, docker and flask into the image for no runtime benefit.
+mlflow-skinny==3.16.0
 onnxruntime==1.30.0
 fastapi>=0.115,<1
 uvicorn[standard]>=0.30,<1

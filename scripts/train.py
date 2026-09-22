@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import yaml
 from datetime import datetime, timezone
@@ -82,7 +83,9 @@ def main() -> None:
         )
         metrics = {str(k): float(v) for k, v in getattr(results, "results_dict", {}).items() if _numeric(v)}
         for key, value in metrics.items():
-            mlflow.log_metric(key.replace("/", "_"), value)
+            # MLflow metric names reject characters such as parentheses: metrics/precision(B) -> metrics_precision_B
+            metric_name = re.sub(r"[^0-9A-Za-z_\-. :/]", "_", key.replace("/", "_"))
+            mlflow.log_metric(metric_name, value)
 
         save_dir = Path(results.save_dir)
         best = save_dir / "weights/best.pt"

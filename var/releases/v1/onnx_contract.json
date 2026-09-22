@@ -1,0 +1,31 @@
+{
+  "input": {
+    "name": "images",
+    "shape": [
+      1,
+      3,
+      320,
+      320
+    ],
+    "dtype": "tensor(float)"
+  },
+  "outputs": [
+    {
+      "name": "output0",
+      "shape": [
+        1,
+        7,
+        2100
+      ],
+      "dtype": "tensor(float)"
+    }
+  ],
+  "providers": [
+    "CPUExecutionProvider"
+  ],
+  "opsets": {
+    "ai.onnx": 17
+  },
+  "preprocessing": "BGR decode -> aspect-preserving letterbox(fill=114) -> RGB -> NCHW float32 /255",
+  "postprocessing": "decode Ultralytics detection output -> class confidence filter -> class-wise NMS -> undo letterbox"
+}

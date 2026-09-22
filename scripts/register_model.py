@@ -3,9 +3,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 
 from common import MODEL_NAME, ROOT, load_release, save_release
+
+# Allow `python scripts/register_model.py` to import the app package from the project root.
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 
 def main() -> None:

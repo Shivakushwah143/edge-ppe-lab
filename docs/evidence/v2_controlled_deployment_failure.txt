@@ -1,0 +1,52 @@
+# Controlled deployment failure - invalid model artifact path
+timestamp: 2026-09-22T10:00:18Z
+
+## CONFIG UNDER TEST (intentionally invalid)
+EDGE_PPE_MODEL_PATH=/nonexistent/model-v2.onnx
+EDGE_PPE_MODEL_VERSION=2
+EDGE_PPE_STARTUP_STRICT=<unset -> defaults to true>
+
+## VALID ARTIFACT INTEGRITY BEFORE (must remain untouched)
+-rw-r--r-- 1 shiva_kushwah shiva_kushwah 10440792 Sep 22 09:56 var/releases/v2/model.onnx
+sha256=43e14f6484290bfd44349e68dc14781c2e17268999ce0100b8a13e809f276fd4
+
+## COMMAND: docker ps -a (before)
+edgeppe-api Up About a minute (healthy)
+
+## COMMAND: redeploy with invalid path
+$ docker rm -f edgeppe-api && docker run -d --name edgeppe-api -p 18000:8000 -e EDGE_PPE_MODEL_PATH=/nonexistent/model-v2.onnx -e EDGE_PPE_MODEL_VERSION=2 edge-ppe-lab:local
+
+## EVIDENCE: docker ps -a (after)
+edgeppe-api image=edge-ppe-lab:local status=Exited (3) 12 seconds ago
+
+## EVIDENCE: docker inspect
+status=exited exit_code=3 error= started=2026-09-22T10:00:23.131499009Z finished=2026-09-22T10:00:31.203202905Z
+
+## EVIDENCE: docker logs (tail)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/main.py", line 26, in lifespan
+    runtime = RuntimeModel.from_settings(settings)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/model_runtime.py", line 110, in from_settings
+    detector = OnnxDetector(path, settings.confidence, settings.iou_threshold)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app/model_runtime.py", line 47, in __init__
+    raise FileNotFoundError(f"ONNX model not found: {self.path}")
+FileNotFoundError: ONNX model not found: /nonexistent/model-v2.onnx
+
+ERROR:    Application startup failed. Exiting.
+
+## EVIDENCE: curl /health from host
+http_code=000
+(curl failed: connection refused)
+
+## EVIDENCE: ss -ltn :18000
+(nothing listening on 18000)
+
+## EVIDENCE: registry state unaffected
+champion still version 2 | parity_status passed
+
+## VALID ARTIFACT INTEGRITY AFTER
+sha256=43e14f6484290bfd44349e68dc14781c2e17268999ce0100b8a13e809f276fd4
+size=10440792
+onnx.checker on v2 artifact: PASS (artifact intact)

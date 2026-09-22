@@ -1,0 +1,157 @@
+# Final release hygiene (executed 2026-09-22)
+
+Scope: the real project tree /home/shiva_kushwah/projects/edge-ppe-lab
+
+Rule applied: remove only disposable caches and temporary logs. Qualified evidence
+(docs/evidence/*), release metadata (var/releases/*, var/deployment/*), Docker build
+evidence (var/docker/*), parity reports and ONNX artifacts were NOT touched.
+
+## 1. Disposable items found
+
+$ find . -name "__pycache__" -not -path "./.venv/*" -o -name ".pytest_cache" -not -path "./.venv/*"
+./app/__pycache__
+./scripts/__pycache__
+./tests/__pycache__
+./.pytest_cache
+
+$ ls -la var/*.log var/*.exit 2>/dev/null
+-rw-r--r-- 1 shiva_kushwah shiva_kushwah    9 Sep 22 10:58 var/api.exit
+-rw-r--r-- 1 shiva_kushwah shiva_kushwah 1552 Sep 22 10:58 var/api.log
+
+## 2. Removal (project-level caches + superseded hand-run service logs only)
+
+$ rm -rf scripts/__pycache__ tests/__pycache__ app/__pycache__ .pytest_cache
+$ rm -f var/api.log var/api.log.pre-v2-deploy var/api.exit
+(done)
+
+KEPT on purpose: var/docker/build.log, var/docker/build.exit,
+var/docker/build.failed-pypi-timeout.log (referenced Docker build evidence),
+var/releases/v1|v2/*, var/deployment/champion.json, docs/evidence/*, var/dataset-v*.yaml.
+__pycache__ inside .venv/ was left alone: that directory is third-party and is excluded
+from the release archive entirely.
+
+## 3. Caches after cleanup
+
+$ find . -name "__pycache__" -not -path "./.venv/*" -o -name ".pytest_cache" -not -path "./.venv/*"
+(empty output = clean)
+
+## 4. Files larger than 100 MB
+
+$ find . -type f -size +100M
+./.venv/lib/python3.12/site-packages/_polars_runtime_32/_polars_runtime.abi3.so
+./.venv/lib/python3.12/site-packages/nvidia/cu13/lib/libcublasLt.so.13
+./.venv/lib/python3.12/site-packages/nvidia/cu13/lib/libcufft.so.12
+./.venv/lib/python3.12/site-packages/nvidia/cu13/lib/libcurand.so.10
+./.venv/lib/python3.12/site-packages/nvidia/cu13/lib/libcusolver.so.12
+./.venv/lib/python3.12/site-packages/nvidia/cu13/lib/libcusparse.so.12
+./.venv/lib/python3.12/site-packages/nvidia/cu13/lib/libnvrtc.alt.so.13
+./.venv/lib/python3.12/site-packages/nvidia/cu13/lib/libnvrtc.so.13
+./.venv/lib/python3.12/site-packages/nvidia/cudnn/lib/libcudnn_adv.so.9
+./.venv/lib/python3.12/site-packages/nvidia/cudnn/lib/libcudnn_engines_precompiled.so.9
+./.venv/lib/python3.12/site-packages/nvidia/cudnn/lib/libcudnn_engines_tensor_ir.so.9
+./.venv/lib/python3.12/site-packages/nvidia/cudnn/lib/libcudnn_ext.so.9
+./.venv/lib/python3.12/site-packages/nvidia/cudnn/lib/libcudnn_graph.so.9
+./.venv/lib/python3.12/site-packages/nvidia/cusparselt/lib/libcusparseLt.so.0
+./.venv/lib/python3.12/site-packages/nvidia/nccl/lib/libnccl.so.2
+./.venv/lib/python3.12/site-packages/torch/lib/libtorch_cpu.so
+./.venv/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so
+./.venv/lib/python3.12/site-packages/triton/_C/libtriton.so
+./data/raw/construction-ppe.zip
+
+Every hit is inside .venv/ (the 6.8 GB training virtualenv) or data/raw/ (the downloaded
+Construction-PPE archive). Both are excluded from the release archive, so the packaged tree
+contains no file near this size (largest packaged file: the 10.4 MB qualified ONNX artifacts).
+
+## 5. Secret scan
+
+Requested command:
+
+  grep -RniE 'password|secret|token|api[_-]?key' --exclude-dir=.git --exclude='*.onnx' --exclude='*.pt' .
+
+Deviation, recorded deliberately: the scan was also scoped with --exclude-dir=.venv. The
+virtualenv is 6.8 GB of third-party packages (torch/CUDA libraries, every dependency wheel
+unpacked) and is excluded from the release archive, so scanning it produced thousands of
+irrelevant hits inside site-packages and exceeded the 7-minute command budget before
+finishing. Everything that is actually packaged WAS scanned.
+
+  grep -RniE 'password|secret|token|api[_-]?key' --exclude-dir=.git --exclude-dir=.venv \
+      --exclude='*.onnx' --exclude='*.pt' .
+
+./docs/10_LINUX_FOR_MLOPS.md:88:Logs should include startup configuration summary without secrets, concrete model version, model hash, runtime provider, errors, and request correlation information if implemented.
+./docs/23_IMPLEMENTATION_MASTER_PROMPT.md:79:- remove accidental secrets, caches, unnecessary large artifacts where appropriate
+./docs/13_OBSERVABILITY.md:65:Error logs must include enough context to identify failing operation without leaking secrets.
+./docs/16_FAILURE_AND_DEBUGGING_MATRIX.md:8:| 2 | Missing env variable | startup configuration error | `env`, `echo "$MODEL_URI"`, service/container logs | variable not exported/passed to runtime | define in correct shell/env file/container args | restart; startup logs show resolved non-secret config |
+./docs/12_SYSTEMD_AND_PROCESS_MANAGEMENT.md:38:The unit must not embed secrets in the documentation/repository.
+./docs/evidence/systemd_runtime_verification.txt:283:This agent runs in a non-interactive shell where `sudo` cannot prompt for a password
+./docs/evidence/systemd_runtime_verification.txt:284:(`sudo -n true` -> "sudo: a password is required"). The privileged steps were therefore
+./docs/evidence/14_release_audit.txt:33:## Potential secret pattern audit
+./data/raw/LICENSE:328:source code form), and must require no special password or key for
+./var/docker/build.failed-pypi-timeout.log:14:#3 [auth] library/python:pull token for registry-1.docker.io
+
+Assessment: no credential is present anywhere in the packaged tree. Every match above is
+either documentation prose that tells readers NOT to leak secrets, or one line of Docker
+BuildKit boilerplate in the preserved build log -- "[auth] library/python:pull token for
+registry-1.docker.io" is a token REQUEST being logged, not a token value. The service
+environment file carries only a localhost URI, paths and a model name.
+
+Additional checks for real secret material:
+
+$ ls -la .env .env.local secrets
+no .env / .env.local / secrets file present
+$ grep -rnE "BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}" --exclude-dir=.git --exclude-dir=.venv .
+no private keys, cloud access keys or GitHub tokens found
+
+
+## 6. Final test suite
+
+Interpreter note: the project .venv is the runtime/service environment (what systemd executes,
+no dev tools installed), while the training/dev environment ~/.edge-ppe-venv carries pytest
+(requirements-dev.txt = requirements.txt + pytest). The suite is therefore run with the dev
+environment, exactly as the earlier verification did.
+
+$ /home/shiva_kushwah/.edge-ppe-venv/bin/python -m pytest -q
+.......                                                                  [100%]
+7 passed in 8.80s
+
+$ /home/shiva_kushwah/.edge-ppe-venv/bin/python -m compileall -q app scripts tests
+
+## 7. Repository state for the release commit
+
+$ git status --short
+ M START_HERE.md
+ M configs/train-v1.yaml
+ M configs/train-v2.yaml
+ M deploy/systemd/edge-ppe.env.example
+ M deploy/systemd/edge-ppe.service
+ M deploy/systemd/install.sh
+ M docker/Dockerfile
+ M docs/FAILURE_VERIFICATION.md
+ M docs/IMPLEMENTATION_REPORT.md
+ M docs/KNOWN_LIMITATIONS.md
+ M docs/REQUIREMENTS_TRACEABILITY.md
+ M docs/VERIFICATION_REPORT.md
+ M requirements-runtime.txt
+ M scripts/register_model.py
+ M scripts/set_champion.py
+ M scripts/train.py
+ M scripts/validate_parity.py
+?? docs/evidence/RUNTIME_LIFECYCLE_VERIFICATION.md
+?? docs/evidence/final_release_hygiene.txt
+?? docs/evidence/final_state_verification.txt
+?? docs/evidence/registry_tag_hygiene.txt
+?? docs/evidence/systemd_runtime_verification.txt
+?? docs/evidence/v1-onnx-parity.json
+?? docs/evidence/v2-onnx-parity.json
+?? docs/evidence/v2_controlled_deployment_failure.txt
+?? docs/evidence/v2_mlflow_run_registry_onnx_metadata.txt
+?? docs/evidence/v2_rollback_to_v1.txt
+?? docs/evidence/v2_runtime_verification.txt
+?? var/dataset-v1.yaml
+?? var/dataset-v2.yaml
+?? var/deployment/
+?? var/docker/
+?? var/releases/v1/
+?? var/releases/v2/
+
+$ git log --oneline -3
+4aac66e chore: initialize EdgePPE Lab

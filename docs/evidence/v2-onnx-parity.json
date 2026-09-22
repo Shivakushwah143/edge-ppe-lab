@@ -1,0 +1,345 @@
+{
+  "release": "v2",
+  "passed": true,
+  "tolerance": {
+    "min_iou": 0.95,
+    "max_confidence_delta": 0.03,
+    "max_unmatched_fraction": 0.1
+  },
+  "summary": {
+    "images": 5,
+    "minimum_matched_iou": 0.999982796774978,
+    "maximum_confidence_delta": 9.26136016876633e-07,
+    "unmatched_fraction": 0.0,
+    "onnx_execution_providers": [
+      "CPUExecutionProvider"
+    ]
+  },
+  "comparisons": [
+    {
+      "image": "data/processed/ppe-v1/images/val/image1057.jpg",
+      "pytorch": [
+        {
+          "class_id": 1,
+          "class_name": "Hardhat",
+          "confidence": 0.9084294438362122,
+          "bbox": {
+            "x1": 205.3583526611328,
+            "y1": 65.35321044921875,
+            "x2": 323.24920654296875,
+            "y2": 119.25076293945312
+          }
+        },
+        {
+          "class_id": 0,
+          "class_name": "Person",
+          "confidence": 0.7980342507362366,
+          "bbox": {
+            "x1": 122.63409423828125,
+            "y1": 59.51983642578125,
+            "x2": 440.31103515625,
+            "y2": 562.9202270507812
+          }
+        }
+      ],
+      "onnxruntime": [
+        {
+          "class_id": 1,
+          "class_name": "Hardhat",
+          "confidence": 0.908429,
+          "bbox": {
+            "x1": 205.358,
+            "y1": 65.353,
+            "x2": 323.249,
+            "y2": 119.251
+          }
+        },
+        {
+          "class_id": 0,
+          "class_name": "Person",
+          "confidence": 0.798035,
+          "bbox": {
+            "x1": 122.634,
+            "y1": 59.52,
+            "x2": 440.311,
+            "y2": 562.92
+          }
+        }
+      ],
+      "matched": [
+        {
+          "class_id": 1,
+          "iou": 0.9999869537616762,
+          "confidence_delta": 4.4383621211618873e-07
+        },
+        {
+          "class_id": 0,
+          "iou": 0.9999988167130518,
+          "confidence_delta": 7.492637634776145e-07
+        }
+      ],
+      "unmatched_pt": [],
+      "unmatched_onnx": []
+    },
+    {
+      "image": "data/processed/ppe-v1/images/val/image1083.jpg",
+      "pytorch": [
+        {
+          "class_id": 0,
+          "class_name": "Person",
+          "confidence": 0.8247541785240173,
+          "bbox": {
+            "x1": 167.68927001953125,
+            "y1": 5.676513671875,
+            "x2": 494.6903076171875,
+            "y2": 640.0
+          }
+        },
+        {
+          "class_id": 1,
+          "class_name": "Hardhat",
+          "confidence": 0.7309601306915283,
+          "bbox": {
+            "x1": 224.552978515625,
+            "y1": 30.790225982666016,
+            "x2": 403.02227783203125,
+            "y2": 103.60256958007812
+          }
+        }
+      ],
+      "onnxruntime": [
+        {
+          "class_id": 0,
+          "class_name": "Person",
+          "confidence": 0.824754,
+          "bbox": {
+            "x1": 167.689,
+            "y1": 5.677,
+            "x2": 494.69,
+            "y2": 640.0
+          }
+        },
+        {
+          "class_id": 1,
+          "class_name": "Hardhat",
+          "confidence": 0.73096,
+          "bbox": {
+            "x1": 224.553,
+            "y1": 30.79,
+            "x2": 403.022,
+            "y2": 103.603
+          }
+        }
+      ],
+      "matched": [
+        {
+          "class_id": 0,
+          "iou": 0.9999974668480311,
+          "confidence_delta": 1.785240173468594e-07
+        },
+        {
+          "class_id": 1,
+          "iou": 0.9999893079899131,
+          "confidence_delta": 1.3069152826616914e-07
+        }
+      ],
+      "unmatched_pt": [],
+      "unmatched_onnx": []
+    },
+    {
+      "image": "data/processed/ppe-v1/images/val/image1096.jpg",
+      "pytorch": [
+        {
+          "class_id": 0,
+          "class_name": "Person",
+          "confidence": 0.7662864327430725,
+          "bbox": {
+            "x1": 203.83944702148438,
+            "y1": 62.5380859375,
+            "x2": 457.0469055175781,
+            "y2": 578.6253662109375
+          }
+        },
+        {
+          "class_id": 1,
+          "class_name": "Hardhat",
+          "confidence": 0.7590067386627197,
+          "bbox": {
+            "x1": 262.7979736328125,
+            "y1": 73.31944274902344,
+            "x2": 412.4462890625,
+            "y2": 134.70721435546875
+          }
+        }
+      ],
+      "onnxruntime": [
+        {
+          "class_id": 0,
+          "class_name": "Person",
+          "confidence": 0.766286,
+          "bbox": {
+            "x1": 203.839,
+            "y1": 62.538,
+            "x2": 457.047,
+            "y2": 578.625
+          }
+        },
+        {
+          "class_id": 1,
+          "class_name": "Hardhat",
+          "confidence": 0.759007,
+          "bbox": {
+            "x1": 262.798,
+            "y1": 73.319,
+            "x2": 412.446,
+            "y2": 134.707
+          }
+        }
+      ],
+      "matched": [
+        {
+          "class_id": 0,
+          "iou": 0.9999969853216166,
+          "confidence_delta": 4.327430724870851e-07
+        },
+        {
+          "class_id": 1,
+          "iou": 0.9999871881491005,
+          "confidence_delta": 2.6133728026067615e-07
+        }
+      ],
+      "unmatched_pt": [],
+      "unmatched_onnx": []
+    },
+    {
+      "image": "data/processed/ppe-v1/images/val/image1107.jpg",
+      "pytorch": [
+        {
+          "class_id": 1,
+          "class_name": "Hardhat",
+          "confidence": 0.912645161151886,
+          "bbox": {
+            "x1": 295.62481689453125,
+            "y1": 65.31779479980469,
+            "x2": 421.87945556640625,
+            "y2": 119.43354797363281
+          }
+        },
+        {
+          "class_id": 0,
+          "class_name": "Person",
+          "confidence": 0.8480721116065979,
+          "bbox": {
+            "x1": 209.59014892578125,
+            "y1": 62.5657958984375,
+            "x2": 510.89984130859375,
+            "y2": 577.097412109375
+          }
+        }
+      ],
+      "onnxruntime": [
+        {
+          "class_id": 1,
+          "class_name": "Hardhat",
+          "confidence": 0.912645,
+          "bbox": {
+            "x1": 295.625,
+            "y1": 65.318,
+            "x2": 421.879,
+            "y2": 119.434
+          }
+        },
+        {
+          "class_id": 0,
+          "class_name": "Person",
+          "confidence": 0.848072,
+          "bbox": {
+            "x1": 209.59,
+            "y1": 62.566,
+            "x2": 510.9,
+            "y2": 577.097
+          }
+        }
+      ],
+      "matched": [
+        {
+          "class_id": 1,
+          "iou": 0.999982796774978,
+          "confidence_delta": 1.6115188594678642e-07
+        },
+        {
+          "class_id": 0,
+          "iou": 0.9999977814545895,
+          "confidence_delta": 1.1160659785236504e-07
+        }
+      ],
+      "unmatched_pt": [],
+      "unmatched_onnx": []
+    },
+    {
+      "image": "data/processed/ppe-v1/images/val/image115.jpg",
+      "pytorch": [
+        {
+          "class_id": 1,
+          "class_name": "Hardhat",
+          "confidence": 0.8921769261360168,
+          "bbox": {
+            "x1": 293.3002014160156,
+            "y1": 20.4063720703125,
+            "x2": 374.6036071777344,
+            "y2": 86.37876892089844
+          }
+        },
+        {
+          "class_id": 0,
+          "class_name": "Person",
+          "confidence": 0.3981982171535492,
+          "bbox": {
+            "x1": 236.15484619140625,
+            "y1": 0.0,
+            "x2": 446.0008544921875,
+            "y2": 514.8214111328125
+          }
+        }
+      ],
+      "onnxruntime": [
+        {
+          "class_id": 1,
+          "class_name": "Hardhat",
+          "confidence": 0.892176,
+          "bbox": {
+            "x1": 293.3,
+            "y1": 20.406,
+            "x2": 374.604,
+            "y2": 86.379
+          }
+        },
+        {
+          "class_id": 0,
+          "class_name": "Person",
+          "confidence": 0.398198,
+          "bbox": {
+            "x1": 236.155,
+            "y1": 0.0,
+            "x2": 446.001,
+            "y2": 514.821
+          }
+        }
+      ],
+      "matched": [
+        {
+          "class_id": 1,
+          "iou": 0.9999835488549224,
+          "confidence_delta": 9.26136016876633e-07
+        },
+        {
+          "class_id": 0,
+          "iou": 0.9999977750474468,
+          "confidence_delta": 2.1715354919793484e-07
+        }
+      ],
+      "unmatched_pt": [],
+      "unmatched_onnx": []
+    }
+  ]
+}

@@ -1,0 +1,172 @@
+# Release package manifest - edge-ppe-lab-final-verified.zip
+
+generated        : 2026-09-22T11:19:30Z
+source tree      : /home/shiva_kushwah/projects/edge-ppe-lab  (the real, deployed project)
+git commit       : the release commit that contains this manifest (hash not embedded - this
+                   file is a member of that commit; inspect with `git log -1 --format=%H`)
+archive          : edge-ppe-lab-final-verified.zip
+members          : 121
+uncompressed     : 21299100 bytes (20.3 MiB)
+archive size     : 18562847 bytes (17.7 MiB)
+SHA-256          : f341479c6d0d461666baf24427050a9ddbfb9bd8ffda7b17f9c6991f487cba04
+
+This manifest is committed and published alongside the archive. It is deliberately NOT a member
+of the archive: an archive cannot contain its own checksum. It is the only tracked file that the
+archive omits. Verify the archive with:
+
+    sha256sum edge-ppe-lab-final-verified.zip   # expect f341479c6d0d461666baf24427050a9ddbfb9bd8ffda7b17f9c6991f487cba04
+    unzip -t edge-ppe-lab-final-verified.zip    # expect No errors detected
+
+## Verification performed from inside the archive
+
+    unzip -t                                  -> No errors detected in compressed data
+    var/releases/v1/model.onnx  sha256        -> e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681
+    var/releases/v1/release.json onnx_sha256  -> e22e6aeb... (MATCH)
+    var/releases/v2/model.onnx  sha256        -> 43e14f6484290bfd44349e68dc14781c2e17268999ce0100b8a13e809f276fd4
+    var/releases/v2/release.json onnx_sha256  -> 43e14f64... (MATCH)
+    onnx.checker on both extracted artifacts  -> PASS (opset 17, IR 8)
+
+## Qualified artifacts shipped (CPU ONNX)
+
+    var/releases/v1/model.onnx  10440792 bytes  (parity-qualified deployment artifact)
+    var/releases/v2/model.onnx  10440792 bytes  (parity-qualified deployment artifact)
+
+## Intentionally excluded (see KNOWN_LIMITATIONS.md 'Artifact packaging')
+
+    .git/            VCS history, replaced by the release commit identified above
+    .venv/           6.8 GB third-party virtualenv, recreated by pip install -r requirements.txt
+    data/raw/        raw Construction-PPE dataset (350 MB); re-downloaded by scripts/prepare_dataset.py
+    data/processed/  derived dataset (37 MB); rebuilt by prepare_dataset.py + verify_dataset.py
+    var/mlflow/      live MLflow backend + artifact store; registry state is captured in docs/evidence/*
+    var/model-cache/ runtime artifact download cache; the service recreates it at startup
+    var/training/    full Ultralytics run directories (plots, batch images, weights)
+    __pycache__/, .pytest_cache/  bytecode and test caches
+    best.onnx        byte-identical duplicate of model.onnx (SHA-256 verified)
+    *.pt             PyTorch checkpoints and yolo11n.pt base weights (Git-ignored by design)
+    var/api.log*     temporary logs of the retired hand-started Uvicorn (deleted, not shipped)
+    .env / secrets   none exist in the tree; only .env.example is shipped
+    docs/evidence/release_package_manifest.txt  this manifest (published alongside, see above)
+
+## Member inventory
+
+    edge-ppe-lab/.dockerignore
+    edge-ppe-lab/.env.example
+    edge-ppe-lab/.github/workflows/ci.yml
+    edge-ppe-lab/.gitignore
+    edge-ppe-lab/Makefile
+    edge-ppe-lab/README.md
+    edge-ppe-lab/START_HERE.md
+    edge-ppe-lab/app/__init__.py
+    edge-ppe-lab/app/config.py
+    edge-ppe-lab/app/main.py
+    edge-ppe-lab/app/metrics.py
+    edge-ppe-lab/app/mlflow_model.py
+    edge-ppe-lab/app/model_runtime.py
+    edge-ppe-lab/app/postprocessing.py
+    edge-ppe-lab/app/preprocessing.py
+    edge-ppe-lab/app/schemas.py
+    edge-ppe-lab/configs/train-v1.yaml
+    edge-ppe-lab/configs/train-v2.yaml
+    edge-ppe-lab/data/ppe.yaml
+    edge-ppe-lab/deploy/systemd/edge-ppe.env.example
+    edge-ppe-lab/deploy/systemd/edge-ppe.service
+    edge-ppe-lab/deploy/systemd/install.sh
+    edge-ppe-lab/docker/Dockerfile
+    edge-ppe-lab/docs/01_PROBLEM_AND_LEARNING_OBJECTIVES.md
+    edge-ppe-lab/docs/02_PRD.md
+    edge-ppe-lab/docs/03_FRD.md
+    edge-ppe-lab/docs/04_USER_STORIES.md
+    edge-ppe-lab/docs/05_ARCHITECTURE.md
+    edge-ppe-lab/docs/06_LOCKED_TECH_STACK.md
+    edge-ppe-lab/docs/07_DOMAIN_AND_MODEL_CONTRACTS.md
+    edge-ppe-lab/docs/08_MLFLOW_AND_MODEL_REGISTRY.md
+    edge-ppe-lab/docs/09_ONNX_DEPLOYMENT_DESIGN.md
+    edge-ppe-lab/docs/10_LINUX_FOR_MLOPS.md
+    edge-ppe-lab/docs/11_DOCKER_DEPLOYMENT.md
+    edge-ppe-lab/docs/12_SYSTEMD_AND_PROCESS_MANAGEMENT.md
+    edge-ppe-lab/docs/13_OBSERVABILITY.md
+    edge-ppe-lab/docs/14_CI_CD.md
+    edge-ppe-lab/docs/15_MODEL_VERSIONING_AND_ROLLBACK.md
+    edge-ppe-lab/docs/16_FAILURE_AND_DEBUGGING_MATRIX.md
+    edge-ppe-lab/docs/17_ZERO_ASSUMPTION_END_TO_END_JOURNEY.md
+    edge-ppe-lab/docs/18_INTERVIEW_KNOWLEDGE_MAP.md
+    edge-ppe-lab/docs/19_TARGET_COMPANY_SKILL_ALIGNMENT.md
+    edge-ppe-lab/docs/20_FUTURE_TENSORRT_JETSON_PATH.md
+    edge-ppe-lab/docs/21_ACCEPTANCE_CRITERIA.md
+    edge-ppe-lab/docs/22_BUILD_PLAN.md
+    edge-ppe-lab/docs/23_IMPLEMENTATION_MASTER_PROMPT.md
+    edge-ppe-lab/docs/FAILURE_VERIFICATION.md
+    edge-ppe-lab/docs/IMPLEMENTATION_REPORT.md
+    edge-ppe-lab/docs/KNOWN_LIMITATIONS.md
+    edge-ppe-lab/docs/REFERENCES.md
+    edge-ppe-lab/docs/REQUIREMENTS_TRACEABILITY.md
+    edge-ppe-lab/docs/THIRD_PARTY_NOTICES.md
+    edge-ppe-lab/docs/VERIFICATION_REPORT.md
+    edge-ppe-lab/docs/diagrams/01_training_architecture.mmd
+    edge-ppe-lab/docs/diagrams/02_linux_runtime.mmd
+    edge-ppe-lab/docs/diagrams/03_docker_runtime.mmd
+    edge-ppe-lab/docs/diagrams/04_version_lifecycle.mmd
+    edge-ppe-lab/docs/diagrams/05_future_edge_extension.mmd
+    edge-ppe-lab/docs/evidence/01_environment.txt
+    edge-ppe-lab/docs/evidence/02_component_probe.txt
+    edge-ppe-lab/docs/evidence/03_dataset_attempt.txt
+    edge-ppe-lab/docs/evidence/04_dependency_install_attempt.txt
+    edge-ppe-lab/docs/evidence/05_degraded_api_runtime.txt
+    edge-ppe-lab/docs/evidence/06_failure_wrong_model_path.txt
+    edge-ppe-lab/docs/evidence/07_failure_missing_env.txt
+    edge-ppe-lab/docs/evidence/08_failure_permission_denied.txt
+    edge-ppe-lab/docs/evidence/09_failure_port_occupied.txt
+    edge-ppe-lab/docs/evidence/10_process_crash_observation.txt
+    edge-ppe-lab/docs/evidence/11_resource_inspection.txt
+    edge-ppe-lab/docs/evidence/12_static_validation.txt
+    edge-ppe-lab/docs/evidence/13_final_environment_and_validation.txt
+    edge-ppe-lab/docs/evidence/14_release_audit.txt
+    edge-ppe-lab/docs/evidence/14_release_gate.txt
+    edge-ppe-lab/docs/evidence/15_post_audit_validation.txt
+    edge-ppe-lab/docs/evidence/RUNTIME_LIFECYCLE_VERIFICATION.md
+    edge-ppe-lab/docs/evidence/final_release_hygiene.txt
+    edge-ppe-lab/docs/evidence/final_state_verification.txt
+    edge-ppe-lab/docs/evidence/registry_tag_hygiene.txt
+    edge-ppe-lab/docs/evidence/systemd_runtime_verification.txt
+    edge-ppe-lab/docs/evidence/v1-onnx-parity.json
+    edge-ppe-lab/docs/evidence/v2-onnx-parity.json
+    edge-ppe-lab/docs/evidence/v2_controlled_deployment_failure.txt
+    edge-ppe-lab/docs/evidence/v2_mlflow_run_registry_onnx_metadata.txt
+    edge-ppe-lab/docs/evidence/v2_rollback_to_v1.txt
+    edge-ppe-lab/docs/evidence/v2_runtime_verification.txt
+    edge-ppe-lab/requirements-dev.txt
+    edge-ppe-lab/requirements-runtime.txt
+    edge-ppe-lab/requirements.txt
+    edge-ppe-lab/scripts/common.py
+    edge-ppe-lab/scripts/export_onnx.py
+    edge-ppe-lab/scripts/inspect_linux.sh
+    edge-ppe-lab/scripts/prepare_dataset.py
+    edge-ppe-lab/scripts/register_model.py
+    edge-ppe-lab/scripts/release_status.py
+    edge-ppe-lab/scripts/set_champion.py
+    edge-ppe-lab/scripts/smoke_api.py
+    edge-ppe-lab/scripts/start_mlflow.sh
+    edge-ppe-lab/scripts/train.py
+    edge-ppe-lab/scripts/validate_parity.py
+    edge-ppe-lab/scripts/verify_components.py
+    edge-ppe-lab/scripts/verify_dataset.py
+    edge-ppe-lab/tests/test_dataset_contract.py
+    edge-ppe-lab/tests/test_postprocessing.py
+    edge-ppe-lab/tests/test_preprocessing.py
+    edge-ppe-lab/tests/test_runtime_config.py
+    edge-ppe-lab/var/dataset-v1.yaml
+    edge-ppe-lab/var/dataset-v2.yaml
+    edge-ppe-lab/var/deployment/champion.json
+    edge-ppe-lab/var/docker/build.exit
+    edge-ppe-lab/var/docker/build.failed-pypi-timeout.log
+    edge-ppe-lab/var/docker/build.log
+    edge-ppe-lab/var/releases/.gitkeep
+    edge-ppe-lab/var/releases/v1/model.onnx
+    edge-ppe-lab/var/releases/v1/onnx_contract.json
+    edge-ppe-lab/var/releases/v1/parity_report.json
+    edge-ppe-lab/var/releases/v1/release.json
+    edge-ppe-lab/var/releases/v2/environment.json
+    edge-ppe-lab/var/releases/v2/model.onnx
+    edge-ppe-lab/var/releases/v2/onnx_contract.json
+    edge-ppe-lab/var/releases/v2/parity_report.json
+    edge-ppe-lab/var/releases/v2/release.json

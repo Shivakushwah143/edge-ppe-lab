@@ -1,0 +1,79 @@
+# v2 MLflow run, registry version and ONNX artifact metadata
+timestamp: 2026-09-22T10:02:20.864649+00:00
+
+## experiment
+  id=1 name=edge-ppe-lab lifecycle=active
+  id=0 name=Default lifecycle=active
+
+## v2 training run (created by scripts/train.py --config configs/train-v2.yaml; not re-run)
+  run_id      : 133cc86b38ad4ec7971e60d8e1155c1f
+  run_name    : edge-ppe-v2
+  status      : FINISHED
+  start_time   : 2026-09-22T08:37:29.546000+00:00
+  end_time     : 2026-09-22T09:57:28.853000+00:00
+  artifact_uri: mlflow-artifacts:/1/133cc86b38ad4ec7971e60d8e1155c1f/artifacts
+  params      : {'base_model': 'yolo11n.pt', 'epochs': '12', 'imgsz': '320', 'batch': '8', 'device': 'cpu', 'workers': '2', 'seed': '43', 'fraction': '1.0', 'lr0': '0.008', 'dataset_version': 'ppe-v1', 'git_commit': '4aac66e3903e2dc2e55bcdec743e44c239c4dd58', 'release': 'v2'}
+  metrics     : {'metrics_precision_B_': 0.5571446570824707, 'metrics_recall_B_': 0.6117216117216118, 'metrics_mAP50_B_': 0.592819785851068, 'metrics_mAP50-95_B_': 0.26245204921499393, 'fitness': 0.26245204921499393, 'parity_min_iou': 0.999982796774978, 'parity_max_confidence_delta': 9.26136016876633e-07, 'parity_unmatched_fraction': 0.0}
+  tags        :
+      mlflow.user = shiva_kushwah
+      mlflow.source.name = scripts/train.py
+      mlflow.source.type = LOCAL
+      mlflow.source.git.commit = 4aac66e3903e2dc2e55bcdec743e44c239c4dd58
+      mlflow.source.git.branch = main
+      mlflow.source.git.repoURL = git@github.com:Shivakushwah143/edge-ppe-lab.git
+      mlflow.runName = edge-ppe-v2
+      edge_ppe.release = v2
+      edge_ppe.dataset_version = ppe-v1
+      edge_ppe.git_commit = 4aac66e3903e2dc2e55bcdec743e44c239c4dd58
+      edge_ppe.environment.python = 3.12.3
+      edge_ppe.environment.torch = 2.14.0+cpu
+      edge_ppe.environment.ultralytics = 8.4.153
+      edge_ppe.environment.onnxruntime = 1.30.0
+      edge_ppe.environment.platform = Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39
+      edge_ppe.environment.cpu = Intel(R) Core(TM) i3-1005G1 CPU @ 1.20GHz
+      edge_ppe.environment.gpu_present = false
+      edge_ppe.environment_artifact = environment/environment.json
+  artifacts on disk:
+      artifacts/checkpoints/best.pt  (5427674 bytes)
+      artifacts/dataset/manifest.json  (1749 bytes)
+      artifacts/deployment/v2/model.onnx  (10440792 bytes)
+      artifacts/deployment/v2/onnx_contract.json  (592 bytes)
+      artifacts/deployment/v2/parity_report.json  (8359 bytes)
+      artifacts/environment/environment.json  (1054 bytes)
+
+## registered model versions (edge-ppe-detector)
+  version 1  run_id=c283e4ec5f504ba9864354342a802d68
+      source: models:/m-82c41e07fc08423397e93dbc788409ef
+      tags: {"checkpoint_artifact_path": "checkpoints/best.pt", "dataset_version": "ppe-v1", "onnx_artifact_path": "deployment/v1/model.onnx", "onnx_sha256": "e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681", "parity_status": "passed", "release": "v1", "release_status": "champion"}
+  version 2  run_id=133cc86b38ad4ec7971e60d8e1155c1f
+      source: models:/m-7a9eef6e5cc74d01a8ff1e2ec90b939a
+      tags: {"checkpoint_artifact_path": "checkpoints/best.pt", "dataset_version": "ppe-v1", "onnx_artifact_path": "deployment/v2/model.onnx", "onnx_sha256": "43e14f6484290bfd44349e68dc14781c2e17268999ce0100b8a13e809f276fd4", "parity_status": "passed", "release": "v2", "release_status": "champion"}
+
+## v2 ONNX artifact metadata
+  path              : /home/shiva_kushwah/projects/edge-ppe-lab/var/releases/v2/model.onnx
+  file_size_bytes   : 10440792
+  sha256            : 43e14f6484290bfd44349e68dc14781c2e17268999ce0100b8a13e809f276fd4
+  opset_import      : {'ai.onnx': 17}
+  ir_version        : 8
+  producer          : pytorch 2.14.0
+  checker           : PASS (onnx.checker.check_model)
+  input             : images [1, 3, 320, 320] tensor(float)
+  outputs           : [('output0', [1, 7, 2100], 'tensor(float)')]
+  providers         : ['CPUExecutionProvider']
+
+## var/releases/v2/release.json (key fields)
+  release = v2
+  run_id = 133cc86b38ad4ec7971e60d8e1155c1f
+  registered_model_name = edge-ppe-detector
+  registered_model_version = 2
+  registry_model_uri = models:/m-7a9eef6e5cc74d01a8ff1e2ec90b939a
+  checkpoint_path = var/releases/v2/best.pt
+  onnx_path = var/releases/v2/model.onnx
+  onnx_sha256 = 43e14f6484290bfd44349e68dc14781c2e17268999ce0100b8a13e809f276fd4
+  onnx_artifact_path = deployment/v2/model.onnx
+  export_opset = 17
+  parity_status = passed
+  parity_report_path = var/releases/v2/parity_report.json
+  git_commit = 4aac66e3903e2dc2e55bcdec743e44c239c4dd58
+  metrics = {"fitness": 0.26245204921499393, "metrics/mAP50(B)": 0.592819785851068, "metrics/mAP50-95(B)": 0.26245204921499393, "metrics/precision(B)": 0.5571446570824707, "metrics/recall(B)": 0.6117216117216118}
+  training_config = {"base_model": "yolo11n.pt", "batch": 8, "dataset_version": "ppe-v1", "device": "cpu", "epochs": 12, "fraction": 1.0, "git_commit": "4aac66e3903e2dc2e55bcdec743e44c239c4dd58", "imgsz": 320, "lr0": 0.008, "release": "v2", "seed": 43, "workers": 2}

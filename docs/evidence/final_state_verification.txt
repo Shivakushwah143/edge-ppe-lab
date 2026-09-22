@@ -1,0 +1,114 @@
+# Final state verification (post-rollback)
+timestamp: 2026-09-22T10:02:40Z
+
+## 1. Stale-process audit (step: clean stale training processes)
+$ ps -eo pid,ppid,etime,rss,cmd | grep -E 'python|ultralytics' | grep -v grep
+    205       1    02:23:26 21112 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal
+   3535     282    01:45:55 291120 /home/shiva_kushwah/.edge-ppe-venv/bin/python /home/shiva_kushwah/.edge-ppe-venv/bin/mlflow server --backend-store-uri sqlite:///var/mlflow/mlflow.db --artifacts-destination /home/shiva_kushwah/projects/edge-ppe-lab/var/mlflow/artifacts --host 127.0.0.1 --port 5000
+   3548    3535    01:45:50 26248 /home/shiva_kushwah/.edge-ppe-venv/bin/python -m uvicorn --log-config /home/shiva_kushwah/.edge-ppe-venv/lib/python3.12/site-packages/mlflow/server/uvicorn_log_config.yaml --host 127.0.0.1 --port 5000 --workers 4 mlflow.server.fastapi_app:app
+   3549    3535    01:45:50 276480 /home/shiva_kushwah/.edge-ppe-venv/bin/python -m mlflow.server.jobs._job_runner
+   3550    3548    01:45:50 11044 /home/shiva_kushwah/.edge-ppe-venv/bin/python -c from multiprocessing.resource_tracker import main;main(6)
+   3551    3548    01:45:49 307832 /home/shiva_kushwah/.edge-ppe-venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=9) --multiprocessing-fork
+   3552    3548    01:45:49 301592 /home/shiva_kushwah/.edge-ppe-venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=13) --multiprocessing-fork
+   3553    3548    01:45:49 307156 /home/shiva_kushwah/.edge-ppe-venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=17) --multiprocessing-fork
+   3554    3548    01:45:49 301396 /home/shiva_kushwah/.edge-ppe-venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=21) --multiprocessing-fork
+   3610    3549    01:45:37 276680 /home/shiva_kushwah/.edge-ppe-venv/bin/python -m huey.bin.huey_consumer mlflow.server.jobs._huey_consumer.huey_instance -w 5 -q
+   3612    3549    01:45:37 276852 /home/shiva_kushwah/.edge-ppe-venv/bin/python -m huey.bin.huey_consumer mlflow.server.jobs._huey_consumer.huey_instance -w 2 -q
+   3613    3549    01:45:37 276632 /home/shiva_kushwah/.edge-ppe-venv/bin/python -m huey.bin.huey_consumer mlflow.server.jobs._huey_consumer.huey_instance -w 10 -q
+   3614    3549    01:45:37 276468 /home/shiva_kushwah/.edge-ppe-venv/bin/python -m huey.bin.huey_consumer mlflow.server.jobs._huey_consumer.huey_instance -w 5 -q
+   3617    3549    01:45:37 276632 /home/shiva_kushwah/.edge-ppe-venv/bin/python -m huey.bin.huey_consumer mlflow.server.jobs._huey_consumer.huey_instance -w 10 -q
+   3619    3549    01:45:37 276648 /home/shiva_kushwah/.edge-ppe-venv/bin/python -m huey.bin.huey_consumer mlflow.server.jobs._huey_consumer.huey_instance -w 10 -q
+   3620    3549    01:45:37 280444 /home/shiva_kushwah/.edge-ppe-venv/bin/python -m huey.bin.huey_consumer mlflow.server.jobs._periodic_tasks_consumer.huey_instance -w 5 -q -f
+   9508    9506       01:24 372904 /home/shiva_kushwah/.edge-ppe-venv/bin/python /home/shiva_kushwah/.edge-ppe-venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+Finding: every Python process belongs to live infrastructure:
+  - mlflow server (PPID 282) + its 4 uvicorn workers + jobs runner + huey consumers
+  - the EdgePPE API uvicorn on :8000
+  - /usr/bin/python3 unattended-upgrade-shutdown
+Training processes found: NONE -> nothing was terminated (no orphans existed).
+
+## 2. Resource snapshot
+$ free -h (BEFORE the audit pass)
+               total        used        free      shared  buff/cache   available
+Mem:           7.5Gi       3.9Gi       312Mi       8.7Mi       3.5Gi       3.6Gi
+$ free -h (AFTER)
+               total        used        free      shared  buff/cache   available
+Mem:           7.5Gi       3.9Gi       289Mi       8.7Mi       3.5Gi       3.6Gi
+Swap:          4.0Gi       1.3Mi       4.0Gi
+
+## 3. MLflow registry (final)
+$ GET /api/2.0/mlflow/registered-models/alias?name=edge-ppe-detector&alias=champion
+{
+  "version": "1",
+  "run_id": "c283e4ec5f504ba9864354342a802d68",
+  "aliases": [
+    "champion"
+  ],
+  "tags": {
+    "release": "v1",
+    "dataset_version": "ppe-v1",
+    "checkpoint_artifact_path": "checkpoints/best.pt",
+    "parity_status": "passed",
+    "onnx_artifact_path": "deployment/v1/model.onnx",
+    "onnx_sha256": "e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681",
+    "release_status": "champion"
+  }
+}
+
+$ var/deployment/champion.json
+{
+  "registered_model": "edge-ppe-detector",
+  "alias": "champion",
+  "concrete_version": "1",
+  "release": "v1",
+  "changed_at": "2026-09-22T10:01:02.887535+00:00"
+}
+
+NOTE: set_champion.py never removes the informational release_status=champion tag from the previously promoted version, so v2 still carries it. The mutable 'champion' ALIAS is authoritative and resolves to v1 (proven above and by the runtime).
+
+## 4. Host service (:8000, registry mode)
+env: MLFLOW_TRACKING_URI=http://127.0.0.1:5000 EDGE_PPE_MODEL_NAME=edge-ppe-detector EDGE_PPE_MODEL_ALIAS=champion EDGE_PPE_STARTUP_STRICT=true
+pid: 9508 
+GET /health   -> {"status":"alive"} [200]
+GET /ready    -> {"ready":true,"model_version":"1"} [200]
+GET /model-info -> version 1 | alias champion | source_run_id c283e4ec5f504ba9864354342a802d68
+                  sha256 e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681 | provider ['CPUExecutionProvider']
+POST /predict ->
+  version 1 | detections: [('Hardhat', 0.8832), ('Person', 0.8645)] [200 0.069883s]
+inference_requests_total 2.0
+inference_failures_total 0.0
+inference_latency_seconds_count 2.0
+detections_total{class_name="Hardhat"} 2.0
+detections_total{class_name="Person"} 2.0
+model_info{alias="champion",format="onnx",provider="CPUExecutionProvider",registered_model="edge-ppe-detector",sha256="e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681",version="1"} 1.0
+
+## 5. Docker container (edge-ppe-lab:local)
+status=running health=healthy exit_code=0 image=edge-ppe-lab:local
+GET /health   -> {"status":"alive"} [200]
+GET /ready    -> {"ready":true,"model_version":"1"} [200]
+GET /model-info -> version 1 | sha256 e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681 | provider ['CPUExecutionProvider']
+POST /predict ->
+  version 1 | detections: [('Hardhat', 0.8832), ('Person', 0.8645)] [200 0.067903s]
+
+## 6. Port/process inspection
+LISTEN 0      2048        127.0.0.1:5000       0.0.0.0:*    users:(("python",pid=3554,fd=3),("python",pid=3553,fd=3),("python",pid=3552,fd=3),("python",pid=3551,fd=3),("python",pid=3548,fd=3))
+LISTEN 0      2048          0.0.0.0:8000       0.0.0.0:*    users:(("uvicorn",pid=9508,fd=19))                                                                                                  
+LISTEN 0      4096                *:18000            *:*                                                                                                                                        
+
+## UPDATE (later, 2026-09-22) — this capture is historical
+
+Two statements in the capture above were true when it was written and are no longer the
+current state. They are annotated here rather than edited in place so the original raw
+capture stays intact:
+
+1. "set_champion.py never removes the informational release_status=champion tag from the
+   previously promoted version, so v2 still carries it."
+   FIXED. Promotion now demotes every other version that still claims release_status=champion
+   to release_status=qualified. Registry now reports: champion alias -> version 1,
+   v1 release_status=champion, v2 release_status=qualified.
+   Evidence: docs/evidence/registry_tag_hygiene.txt
+
+2. The API shown on :8000 was a hand-started Uvicorn (pid 9508). It has since been stopped and
+   replaced by the enabled systemd unit edge-ppe, which serves the same champion version 1
+   (same SHA-256 e22e6aeb...) and was verified including a supervised restart after kill -9.
+   Evidence: docs/evidence/systemd_runtime_verification.txt

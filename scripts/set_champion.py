@@ -7,6 +7,10 @@ from datetime import datetime, timezone
 
 from common import MODEL_NAME, RELEASES, ROOT, load_release, require_qualified
 
+CHAMPION = "champion"
+# Status carried by every parity-qualified version that is not the current champion.
+DEMOTED_STATUS = "qualified"
+
 
 def find_release_by_version(version: str) -> tuple[str, dict]:
     for path in sorted(RELEASES.glob("v*/release.json")):
@@ -30,6 +34,30 @@ def resolve_target(release: str | None, version: str | None) -> tuple[str, dict,
     return matched_release, metadata, str(version)
 
 
+def _alias_version(client) -> str | None:
+    """Current champion alias target, or None when the alias does not exist yet."""
+    try:
+        return str(client.get_model_version_by_alias(MODEL_NAME, CHAMPION).version)
+    except Exception:
+        return None
+
+
+def _demote_other_champions(client, version: str) -> list[str]:
+    """Re-tag every other version that still claims release_status=champion.
+
+    MLflow stages are deprecated, so this uses aliases plus version tags only. A version
+    can only have been promoted after passing the parity gate, so the demoted status is
+    `qualified`.
+    """
+    demoted: list[str] = []
+    for candidate in client.search_model_versions(f"name='{MODEL_NAME}'"):
+        if str(candidate.version) == str(version):
+            continue
+        if (candidate.tags or {}).get("release_status") == CHAMPION:
+            client.set_model_version_tag(MODEL_NAME, candidate.version, "release_status", DEMOTED_STATUS)
+            demoted.append(str(candidate.version))
+    return sorted(demoted)
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -52,13 +80,21 @@ def main() -> None:
             f"registry run={registered.run_id}, local run={metadata.get('run_id')}"
         )
 
-    client.set_registered_model_alias(MODEL_NAME, "champion", version)
-    client.set_model_version_tag(MODEL_NAME, version, "release_status", "champion")
+    # The mutable alias is the authoritative deployment pointer; release_status is
+    # informational metadata that must never contradict it. Clear the champion status
+    # from every other version before promoting, so exactly one version claims it.
+    previous_version = _alias_version(client)
+    demoted = _demote_other_champions(client, version)
+
+    client.set_registered_model_alias(MODEL_NAME, CHAMPION, version)
+    client.set_model_version_tag(MODEL_NAME, version, "release_status", CHAMPION)
     deployment = {
         "registered_model": MODEL_NAME,
-        "alias": "champion",
+        "alias": CHAMPION,
         "concrete_version": version,
         "release": release,
+        "previous_version": previous_version,
+        "demoted_versions": demoted,
         "changed_at": datetime.now(timezone.utc).isoformat(),
     }
     path = ROOT / "var/deployment/champion.json"

@@ -48,11 +48,15 @@ The generated `manifest.json` records source identity, source and canonical clas
 
 ### systemd
 
-`deploy/systemd/edge-ppe.service` runs the API as a non-login `edgeppe` account from `/opt/edge-ppe-lab`, uses an external `/etc/edge-ppe/edge-ppe.env`, restarts on failure, and applies basic service hardening. `deploy/systemd/install.sh` installs the tree/venv/unit and correctly makes the environment file readable by group `edgeppe` while not making it world-readable.
+`deploy/systemd/edge-ppe.service` runs the API as an in-place deployment of the repository: `WorkingDirectory` and `ExecStart` are the absolute paths of the real tree (`/home/shiva_kushwah/projects/edge-ppe-lab` and its `.venv/bin/uvicorn`), with no reliance on an activated virtualenv, on `~` expansion, or on the caller's environment. It reads `/etc/edge-ppe/edge-ppe.env`, uses `Restart=on-failure` with `RestartSec=3`, and applies `NoNewPrivileges`, `PrivateTmp`, `ProtectSystem=full` and `ReadWritePaths=<tree>/var`. `ProtectHome=false` and `User=shiva_kushwah` are deliberate: the deployment root is inside the operator's home directory (`0750`), so a dedicated service account would have required loosening the home directory; relocating the tree to `/opt` with an `edgeppe` account is the hardening upgrade path.
+
+`deploy/systemd/install.sh` installs that unit verbatim and refuses to proceed unless the unit's `WorkingDirectory` matches the tree it was pointed at and the interpreter is executable, so the installed unit cannot silently serve a different copy of the code. It seeds `/etc/edge-ppe/edge-ppe.env` from `edge-ppe.env.example` with the same absolute model-cache path and leaves it `0640`.
 
 ### Docker
 
-`docker/Dockerfile` uses Python 3.11 slim, a runtime-only dependency set, a non-root user, OCI Git revision metadata, and a readiness healthcheck. The documented container exercise mounts the already parity-qualified ONNX artifact read-only and sets the exact concrete registry version. This avoids falsely depending on WSL loopback networking to MLflow while still proving the production inference container against the exact qualified artifact.
+`docker/Dockerfile` uses Python 3.11 slim, a runtime-only dependency set, a non-root user, OCI Git revision metadata, and a readiness healthcheck. The runtime set installs `mlflow-skinny` rather than full `mlflow`, because the runtime only needs `mlflow.set_tracking_uri` + `MlflowClient`; that removes pandas, matplotlib, scipy, scikit-learn, docker and flask from the image. The pip step sets `PIP_DEFAULT_TIMEOUT=180` and `PIP_RETRIES=10`, retries the whole resolve up to three times, and mounts a BuildKit pip cache so a slow or aborted build resumes rather than re-downloading. The resulting image is CPU-only: it contains no torch, ultralytics or CUDA packages, and `onnxruntime` exposes only `AzureExecutionProvider` + `CPUExecutionProvider`.
+
+The documented container exercise mounts the already parity-qualified ONNX artifact read-only and sets the exact concrete registry version. This avoids falsely depending on WSL loopback networking to MLflow while still proving the production inference container against the exact qualified artifact.
 
 ### Observability
 
@@ -68,4 +72,14 @@ The implementation does not add Kubernetes, Kafka, Redis, a frontend, RAG, agent
 
 ## Build-state conclusion
 
-The repository is implementation-complete for the requested lab surface. Full runtime qualification of the model lifecycle could not be performed in the execution sandbox because the sandbox could not download the official dataset or missing Python packages and did not provide Docker/systemd runtime capabilities. Those are recorded as environmental blockers rather than converted into fake success.
+The repository is implementation-complete for the requested lab surface, and the CPU model lifecycle has since been **executed end to end on the user's WSL2 environment**: real dataset preparation, real v1 and v2 training runs, MLflow tracking and immutable registry versions (v1 and v2), ONNX export with `onnx.checker` validation, real PT↔ONNX parity for both releases, alias-driven promotion, real CPU inference from both the host service and the Docker container, a controlled deployment failure with full diagnosis, and a real rollback to v1. See `VERIFICATION_REPORT.md` and `docs/evidence/RUNTIME_LIFECYCLE_VERIFICATION.md`.
+
+An earlier build session ran in a restricted sandbox that could not download the dataset or PyPI packages and had no Docker; those entries remain only as historical evidence files and are no longer the current state.
+
+The systemd unit has since been **installed and runtime-verified**: the `edge-ppe` service is enabled
+and `active (running)` on `:8000`, generated journal evidence, survived a real `kill -9` through
+`Restart=on-failure`, and served a real `/predict` as champion version 1
+(`docs/evidence/systemd_runtime_verification.txt`). The promotion path was also tightened so the
+`release_status` tags can no longer contradict the `champion` alias
+(`docs/evidence/registry_tag_hygiene.txt`). The only surfaces still not runtime-verified are the
+GitHub Actions workflow (no hosted runner) and any GPU/TensorRT/Jetson path (no NVIDIA hardware).

@@ -1,7 +1,7 @@
 release: v2
 model: yolo11n.pt
 data: data/ppe.yaml
-epochs: 2
+epochs: 12
 imgsz: 320
 batch: 8
 device: cpu

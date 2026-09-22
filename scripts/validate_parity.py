@@ -6,6 +6,11 @@ import os
 from pathlib import Path
 
 from common import MODEL_NAME, ROOT, load_release, save_release
+
+# Allow `python scripts/validate_parity.py` to import the app package from the project root.
+import sys
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 from app.model_runtime import OnnxDetector
 from app.postprocessing import box_iou
 

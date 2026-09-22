@@ -1,0 +1,32 @@
+{
+  "captured_at": "2026-09-22T09:55:36.514746+00:00",
+  "cpu_logical_count": 4,
+  "cpu_model": "Intel(R) Core(TM) i3-1005G1 CPU @ 1.20GHz",
+  "device_used_for_training": "cpu",
+  "git_branch": "main",
+  "git_commit": "4aac66e3903e2dc2e55bcdec743e44c239c4dd58",
+  "git_remote": "git@github.com:Shivakushwah143/edge-ppe-lab.git",
+  "gpu_present": false,
+  "hostname": "LAPTOP-ODTDH15K",
+  "machine": "x86_64",
+  "mem_total_kb": 7869040,
+  "mlflow": "3.16.0",
+  "numpy": "2.5.3",
+  "onnx": "1.22.0",
+  "onnxruntime": "1.30.0",
+  "onnxruntime_providers": [
+    "AzureExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "opencv": "5.0.0",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "python_executable": "/home/shiva_kushwah/.edge-ppe-venv/bin/python",
+  "pyyaml": "6.0.3",
+  "release": "v2",
+  "run_id": "133cc86b38ad4ec7971e60d8e1155c1f",
+  "torch": "2.14.0+cpu",
+  "torch_cuda_available": false,
+  "torch_num_threads": 2,
+  "ultralytics": "8.4.153"
+}

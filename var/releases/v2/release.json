@@ -1,0 +1,97 @@
+{
+  "checkpoint_artifact_path": "checkpoints/best.pt",
+  "checkpoint_path": "var/releases/v2/best.pt",
+  "created_at": "2026-09-22T08:52:47.218016+00:00",
+  "dataset_verification": {
+    "classes": {
+      "Hardhat": 337,
+      "NO-Hardhat": 107,
+      "Person": 443
+    },
+    "config": "/home/shiva_kushwah/projects/edge-ppe-lab/data/ppe.yaml",
+    "root": "/home/shiva_kushwah/projects/edge-ppe-lab/data/processed/ppe-v1",
+    "splits": {
+      "test": {
+        "annotations": 174,
+        "images": 60,
+        "missing_label_files": []
+      },
+      "train": {
+        "annotations": 530,
+        "images": 180,
+        "missing_label_files": []
+      },
+      "val": {
+        "annotations": 183,
+        "images": 60,
+        "missing_label_files": []
+      }
+    }
+  },
+  "dataset_version": "ppe-v1",
+  "export_opset": 17,
+  "git_commit": "4aac66e3903e2dc2e55bcdec743e44c239c4dd58",
+  "metrics": {
+    "fitness": 0.26245204921499393,
+    "metrics/mAP50(B)": 0.592819785851068,
+    "metrics/mAP50-95(B)": 0.26245204921499393,
+    "metrics/precision(B)": 0.5571446570824707,
+    "metrics/recall(B)": 0.6117216117216118
+  },
+  "onnx_artifact_path": "deployment/v2/model.onnx",
+  "onnx_contract": {
+    "input": {
+      "dtype": "tensor(float)",
+      "name": "images",
+      "shape": [
+        1,
+        3,
+        320,
+        320
+      ]
+    },
+    "opsets": {
+      "ai.onnx": 17
+    },
+    "outputs": [
+      {
+        "dtype": "tensor(float)",
+        "name": "output0",
+        "shape": [
+          1,
+          7,
+          2100
+        ]
+      }
+    ],
+    "postprocessing": "decode Ultralytics detection output -> class confidence filter -> class-wise NMS -> undo letterbox",
+    "preprocessing": "BGR decode -> aspect-preserving letterbox(fill=114) -> RGB -> NCHW float32 /255",
+    "providers": [
+      "CPUExecutionProvider"
+    ]
+  },
+  "onnx_path": "var/releases/v2/model.onnx",
+  "onnx_sha256": "43e14f6484290bfd44349e68dc14781c2e17268999ce0100b8a13e809f276fd4",
+  "parity_report_path": "var/releases/v2/parity_report.json",
+  "parity_status": "passed",
+  "registered_model_name": "edge-ppe-detector",
+  "registered_model_version": "2",
+  "registry_model_uri": "models:/m-7a9eef6e5cc74d01a8ff1e2ec90b939a",
+  "release": "v2",
+  "run_id": "133cc86b38ad4ec7971e60d8e1155c1f",
+  "tracking_uri": "http://127.0.0.1:5000",
+  "training_config": {
+    "base_model": "yolo11n.pt",
+    "batch": 8,
+    "dataset_version": "ppe-v1",
+    "device": "cpu",
+    "epochs": 12,
+    "fraction": 1.0,
+    "git_commit": "4aac66e3903e2dc2e55bcdec743e44c239c4dd58",
+    "imgsz": 320,
+    "lr0": 0.008,
+    "release": "v2",
+    "seed": 43,
+    "workers": 2
+  }
+}

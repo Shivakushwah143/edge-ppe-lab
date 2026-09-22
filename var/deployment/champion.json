@@ -1,0 +1,11 @@
+{
+  "registered_model": "edge-ppe-detector",
+  "alias": "champion",
+  "concrete_version": "1",
+  "release": "v1",
+  "previous_version": "1",
+  "demoted_versions": [
+    "2"
+  ],
+  "changed_at": "2026-09-22T10:56:30.982014+00:00"
+}

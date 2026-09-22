@@ -1,23 +1,39 @@
+# EdgePPE Lab inference API unit.
+#
+# The absolute paths below are the verified WSL2 deployment root of this lab:
+#   /home/shiva_kushwah/projects/edge-ppe-lab
+# and that tree's own Python environment:
+#   /home/shiva_kushwah/projects/edge-ppe-lab/.venv
+#
+# Both are written out in full on purpose: systemd does not activate a virtualenv,
+# does not expand `~`, and does not read the interactive shell environment, so the
+# interpreter and the working directory must be unambiguous. deploy/systemd/install.sh
+# refuses to install this unit unless WorkingDirectory matches the tree it is given.
 [Unit]
 Description=EdgePPE Lab ONNX Inference API
+Documentation=file:///home/shiva_kushwah/projects/edge-ppe-lab/START_HERE.md
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=edgeppe
-Group=edgeppe
-WorkingDirectory=/opt/edge-ppe-lab
+# The tree lives in the operator's home directory, so the service runs as that owner.
+# A /opt-style install would use a dedicated service account instead.
+User=shiva_kushwah
+Group=shiva_kushwah
+WorkingDirectory=/home/shiva_kushwah/projects/edge-ppe-lab
 EnvironmentFile=/etc/edge-ppe/edge-ppe.env
-ExecStart=/opt/edge-ppe-lab/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+ExecStart=/home/shiva_kushwah/projects/edge-ppe-lab/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
 Restart=on-failure
 RestartSec=3
 TimeoutStopSec=15
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
-ProtectHome=true
-ReadWritePaths=/opt/edge-ppe-lab/var
+# ProtectHome is deliberately NOT enabled: the deployment root is inside /home, and the
+# service must be able to read its own code. Write access is still restricted to var/.
+ProtectHome=false
+ReadWritePaths=/home/shiva_kushwah/projects/edge-ppe-lab/var
 
 [Install]
 WantedBy=multi-user.target

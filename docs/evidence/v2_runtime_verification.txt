@@ -1,0 +1,66 @@
+# v2 Docker runtime verification - 2026-09-22T09:58:50Z
+
+## container identity
+image=edge-ppe-lab:local image_id=sha256:2bdab0000516ae3af1c18475163e8e3d17e1a6b5416ba96ad7414158e35d183e status=running health=healthy started=2026-09-22T09:58:24.348307109Z
+mounts=/home/shiva_kushwah/projects/edge-ppe-lab/var/releases/v2/model.onnx->/app/models/model.onnx (ro=false)
+env=EDGE_PPE_MODEL_PATH=/app/models/model.onnx
+EDGE_PPE_MODEL_VERSION=2
+EDGE_PPE_MODEL_CACHE=/app/var/model-cache
+
+## pre-prediction endpoints
+GET /health -> {"status":"alive"} [200]
+GET /ready -> {"ready":true,"model_version":"2"} [200]
+GET /model-info version -> 2
+
+## metrics BEFORE
+inference_requests_total 0.0
+inference_failures_total 0.0
+inference_latency_seconds_count 0.0
+inference_latency_seconds_sum 0.0
+
+## POST /predict x3 (real validation images)
+-- image1057.jpg (49868 bytes)
+   model_version: 2 | detections: [('Hardhat', 0.9084), ('Person', 0.798)] | [200 0.130762s]
+-- image1083.jpg (45882 bytes)
+   model_version: 2 | detections: [('Person', 0.8248), ('Hardhat', 0.731)] | [200 0.058173s]
+-- image1096.jpg (45213 bytes)
+   model_version: 2 | detections: [('Person', 0.7663), ('Hardhat', 0.759)] | [200 0.054371s]
+
+## metrics AFTER
+inference_requests_total 3.0
+inference_failures_total 0.0
+inference_latency_seconds_count 3.0
+inference_latency_seconds_sum 0.1725043149999692
+detections_total{class_name="Hardhat"} 3.0
+detections_total{class_name="Person"} 3.0
+
+## model_info metric
+model_info{alias="local-explicit",format="onnx",provider="CPUExecutionProvider",registered_model="edge-ppe-detector",sha256="43e14f6484290bfd44349e68dc14781c2e17268999ce0100b8a13e809f276fd4",version="2"} 1.0
+
+## registry-mode service verification (champion alias -> v2) - 2026-09-22T10:00:03Z
+service pid: 9284
+GET /health -> {"status":"alive"} [200]
+GET /ready -> {"ready":true,"model_version":"2"} [200]
+GET /model-info -> version=2 alias=champion provider=['CPUExecutionProvider']
+
+### metrics BEFORE
+inference_requests_total 0.0
+inference_failures_total 0.0
+inference_latency_seconds_count 0.0
+inference_latency_seconds_sum 0.0
+
+### POST /predict x3
+ -- image1057: 2 [('Hardhat', 0.9084), ('Person', 0.798)] [200 0.129123s]
+ -- image1083: 2 [('Person', 0.8248), ('Hardhat', 0.731)] [200 0.073366s]
+ -- image1107: 2 [('Hardhat', 0.9126), ('Person', 0.8481)] [200 0.066959s]
+
+### metrics AFTER
+inference_requests_total 3.0
+inference_failures_total 0.0
+inference_latency_seconds_count 3.0
+inference_latency_seconds_sum 0.22607355400032247
+detections_total{class_name="Hardhat"} 3.0
+detections_total{class_name="Person"} 3.0
+
+### model_info metric (service)
+model_info{alias="champion",format="onnx",provider="CPUExecutionProvider",registered_model="edge-ppe-detector",sha256="43e14f6484290bfd44349e68dc14781c2e17268999ce0100b8a13e809f276fd4",version="2"} 1.0
