@@ -1,27 +1,115 @@
 name: edge-ppe-ci
+
+# GitHub-hosted continuous integration.
+#
+# Scope: prove the repository is buildable and internally consistent. It does NOT
+# train, retrain or export a model, and it never touches the self-hosted runner or
+# the deployment. Publication and deployment live in cd.yml.
+#
+# Audit note (2026-09-22): this workflow previously failed on main. The failing
+# step was the bare `pytest -q` invocation, which died during collection with
+# "ModuleNotFoundError: No module named 'app'" -> exit code 2. See pytest.ini for
+# the root cause and the fix; `pytest -q` is kept exactly as it was so CI continues
+# to exercise the invocation that regression-tests the fix.
+
 on:
-  push:
   pull_request:
+  push:
+    branches: [ main ]
+    tags: [ 'edgeppe-v*' ]
+
+# Least privilege: CI only reads the repository. No secrets are referenced by this
+# workflow at all, so a pull request from a fork receives nothing it could exfiltrate.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
+    name: tests, contract gate, docker build
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: pip
-      - run: python -m pip install --upgrade pip
-      - run: pip install -r requirements.txt pytest
-      - run: python -m compileall -q app scripts tests
-      - run: pytest -q
-      - name: Validate model contract when artifact is present
+          cache-dependency-path: |
+            requirements-ci.txt
+            requirements-runtime.txt
+
+      - name: Install dependencies
         run: |
-          if [ -f var/releases/v1/model.onnx ]; then
-            EDGE_PPE_MODEL_PATH="$PWD/var/releases/v1/model.onnx" EDGE_PPE_MODEL_VERSION=1 python -c "from app.model_runtime import RuntimeModel; from app.config import Settings; print(RuntimeModel.from_settings(Settings()).identity)"
-          else
-            echo 'No committed ONNX artifact; reproducible export is validated in the release journey.'
-          fi
+          python -m pip install --upgrade pip
+          pip install -r requirements-ci.txt
+
+      - name: Report environment
+        run: |
+          python -c "import sys, platform; print('python', sys.version); print('platform', platform.platform())"
+
+      - name: Compile validation
+        run: python -m compileall -q app scripts tests
+
+      - name: Test suite
+        run: pytest -q
+
+      - name: Release contract gate
+        run: python scripts/verify_release_contract.py
+
+      - name: Shell script syntax
+        run: bash -n scripts/*.sh deploy/systemd/install.sh deploy/runner/*.sh
+
+      - name: Validate workflow YAML
+        run: |
+          python -c "
+          import pathlib, yaml
+          for p in sorted(pathlib.Path('.github/workflows').glob('*.yml')):
+              yaml.safe_load(p.read_text())
+              print('yaml ok:', p)
+          "
+
       - name: Build immutable Docker candidate
-        run: docker build -f docker/Dockerfile -t edge-ppe-lab:${GITHUB_SHA} .
+        run: |
+          docker build --build-arg GIT_SHA="${GITHUB_SHA}" \
+            -f docker/Dockerfile -t "edge-ppe-lab:${GITHUB_SHA}" .
+
+      - name: Image boot smoke test
+        run: |
+          set -euo pipefail
+          # The image contains no model: the qualified ONNX artifact is deliberately
+          # not tracked by git and is mounted at deploy time. So boot the image with
+          # strict startup disabled and assert the two documented behaviours:
+          #   /health -> 200 (the process is alive and serving)
+          #   /ready  -> 503 (no model loaded, so traffic must not be accepted)
+          # That is the readiness contract from app/main.py, verified for real.
+          docker run -d --name ci-smoke -p 18080:8000 \
+            -e EDGE_PPE_STARTUP_STRICT=false \
+            "edge-ppe-lab:${GITHUB_SHA}"
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18080/health >/dev/null 2>&1; then break; fi
+            if [ "$attempt" = 30 ]; then
+              echo "image never served /health"; docker logs ci-smoke; exit 1
+            fi
+            sleep 1
+          done
+          echo "health  -> $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/health)"
+          ready=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/ready)
+          echo "ready   -> $ready"
+          test "$ready" = "503"
+          echo "image runs as: $(docker inspect --format '{{.Config.User}}' ci-smoke)"
+          docker rm -f ci-smoke
+
+      - name: CI summary
+        if: always()
+        run: |
+          echo "### CI for ${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- event: \`${GITHUB_EVENT_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- image: \`edge-ppe-lab:${GITHUB_SHA}\` (built, not pushed)" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,167 @@
+name: edge-ppe-cd
+
+# Continuous delivery for EdgePPE Lab.
+#
+#   trusted push/tag
+#     -> build one immutable image (tagged with the git SHA)
+#     -> push it to GHCR
+#     -> self-hosted runner deploys exactly that reference
+#     -> runtime health gate (health / ready / model-info / real predict)
+#     -> automatic rollback to the previously running image if the gate fails
+#
+# Security posture:
+#   * There is NO pull_request trigger anywhere in this workflow, so untrusted PR
+#     code can never reach the self-hosted runner or the deployment credentials.
+#   * The self-hosted job is additionally guarded with an explicit event check.
+#   * Images are published only from trusted push/tag events on this repository.
+#   * No long-lived registry secret exists: GHCR uses the ephemeral github.token
+#     scoped per job (packages:write to publish, packages:read to pull).
+#   * Fault injection is only honoured for workflow_dispatch, which requires write
+#     access to the repository.
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'edgeppe-v*' ]
+  workflow_dispatch:
+    inputs:
+      fault_injection:
+        description: 'Deliberate deployment fault, used to verify automatic rollback'
+        type: choice
+        options:
+          - none
+          - bad_model_path
+        default: none
+
+permissions:
+  contents: read
+
+# Never cancel a deployment in progress: a half-finished rollout would be worse
+# than a queued one. CI in ci.yml is cancellable; this is not.
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-push:
+    name: build and push immutable image to GHCR
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+      immutable_tag: ${{ steps.meta.outputs.immutable_tag }}
+      digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve immutable image reference
+        id: meta
+        run: |
+          set -euo pipefail
+          # GHCR requires a lowercase repository path.
+          owner="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
+          image="ghcr.io/${owner}/edge-ppe-lab"
+          tag="${GITHUB_SHA}"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "immutable_tag=${image}:${tag}" >> "$GITHUB_OUTPUT"
+          echo "### Immutable reference" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`${image}:${tag}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "(git SHA \`${tag}\` - this tag is never moved or reused)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build image
+        run: |
+          docker build --build-arg GIT_SHA="${GITHUB_SHA}" \
+            -f docker/Dockerfile -t "${{ steps.meta.outputs.immutable_tag }}" .
+
+      - name: Push immutable tag
+        id: push
+        run: |
+          set -euo pipefail
+          docker push "${{ steps.meta.outputs.immutable_tag }}"
+          digest="$(docker inspect --format '{{index .RepoDigests 0}}' "${{ steps.meta.outputs.immutable_tag }}")"
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+          echo "pushed: ${{ steps.meta.outputs.immutable_tag }}"
+          echo "digest: ${digest}"
+
+      - name: Maintain floating latest tag for main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          # Convenience only. Deployment always uses the immutable SHA tag above.
+          latest="${{ steps.meta.outputs.image }}:latest"
+          docker tag "${{ steps.meta.outputs.immutable_tag }}" "$latest"
+          docker push "$latest"
+          echo "also pushed: ${latest} (floating; never used for deployment)"
+
+  deploy:
+    name: deploy on self-hosted runner
+    needs: build-and-push
+    # Belt and braces: this workflow cannot be triggered by a pull request at all,
+    # and the guard makes that explicit so a future edit cannot silently break it.
+    if: github.event_name != 'pull_request'
+    runs-on: [ self-hosted, linux, x64, edgeppe-deploy ]
+    timeout-minutes: 20
+    environment: edgeppe-production
+    permissions:
+      contents: read
+      packages: read
+    env:
+      IMAGE: ${{ needs.build-and-push.outputs.immutable_tag }}
+      CONTAINER: edgeppe-api
+      HOST_PORT: '18000'
+      DEPLOY_ROOT: /home/shiva_kushwah/projects/edge-ppe-lab
+      RELEASE: v1
+      FAULT_INJECTION: ${{ github.event_name == 'workflow_dispatch' && inputs.fault_injection || 'none' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Runner and toolchain identity
+        run: |
+          echo "runner   : $(hostname) / $(whoami)"
+          echo "kernel   : $(uname -sr)"
+          echo "docker   : $(docker --version)"
+          echo "candidate: ${IMAGE}"
+          echo "fault    : ${FAULT_INJECTION}"
+
+      - name: Log in to GHCR for pull
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Deploy with runtime health gate and automatic rollback
+        id: deploy
+        run: ./scripts/cd_deploy.sh
+
+      - name: Upload deployment log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cd-deploy-log-${{ github.sha }}
+          path: ${{ env.DEPLOY_ROOT }}/var/deployment/cd_deploy.log
+          if-no-files-found: warn
+
+      - name: Record final deployed image
+        if: always()
+        run: |
+          state="${{ env.DEPLOY_ROOT }}/var/deployment/cd_state.json"
+          if [ -f "$state" ]; then
+            echo "### Deployment state" >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat "$state" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "running container:"
+          docker ps --filter "name=${{ env.CONTAINER }}" --format '{{.Names}} {{.Status}} {{.Image}}'

@@ -1,0 +1,15 @@
+# Dependencies installed by .github/workflows/ci.yml.
+#
+# Deliberately layered on requirements-runtime.txt: CI validates the contract of
+# the artifact that actually ships in the CPU inference image, so it installs the
+# runtime dependency set instead of requirements.txt.
+#
+# Intentionally NOT installed in CI: torch, ultralytics, mlflow, pandas and the
+# nvidia-* CUDA wheels. They exist for training/registration on the host only.
+# Installing them pulled ~4 GB of wheels into every CI run to test code that never
+# imports them. Training remains reproducible from requirements.txt on the host.
+#
+# PyYAML is required by tests/test_dataset_contract.py (it reads data/ppe.yaml).
+-r requirements-runtime.txt
+PyYAML>=6,<7
+pytest>=8,<10
