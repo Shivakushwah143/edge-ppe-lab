@@ -19,11 +19,31 @@ runtime: RuntimeModel | None = None
 startup_error: str | None = None
 
 
+def _load_runtime() -> RuntimeModel:
+    """Resolve the model this process will serve, or explain why it serves none.
+
+    Degraded boot (``EDGE_PPE_STARTUP_STRICT=false``) is documented as: serve
+    ``/health`` straight away and report ``/ready`` 503 because no model is loaded.
+    That contract cannot be honoured while startup blocks on a remote registry, and
+    MLflow's default HTTP retry policy is patient enough to stall a boot for minutes
+    against an unreachable tracking server (measured: ~247s for one alias lookup).
+    So when strict mode is off and no explicit local artifact was requested, skip
+    remote resolution instead of waiting on network retries. Strict mode, which is
+    what every deployment path here uses, is unchanged.
+    """
+    if not settings.startup_strict and not settings.model_path:
+        raise RuntimeError(
+            "degraded boot: EDGE_PPE_STARTUP_STRICT=false and EDGE_PPE_MODEL_PATH is unset, "
+            "so remote registry resolution was skipped; serving /health and reporting 503 on /ready"
+        )
+    return RuntimeModel.from_settings(settings)
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     global runtime, startup_error
     try:
-        runtime = RuntimeModel.from_settings(settings)
+        runtime = _load_runtime()
         identity = runtime.identity
         provider = ",".join(identity.providers)
         MODEL_INFO.labels(
