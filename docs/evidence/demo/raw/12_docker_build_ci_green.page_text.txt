@@ -1,0 +1,55 @@
+Skip to content
+Navigation Menu
+Platform
+Solutions
+Resources
+Open Source
+Enterprise
+Pricing
+Search
+/
+Sign in
+Sign up
+Shivakushwah143
+/
+edge-ppe-lab
+Public
+Notifications
+Fork 0
+ Star 0
+Code
+Issues
+Pull requests
+Actions
+Projects
+Security and quality
+Insights
+edge-ppe-ci
+fix(cd): gate CD on a green CI run for the exact commit SHA #4
+Sign in to view logs
+Summary
+All jobs
+tests, contract gate, docker build
+Run details
+Usage
+Workflow file
+Annotations
+1 warning
+tests, contract gate, docker build
+succeeded  in 53s
+Set up job
+Checkout
+Set up Python 3.12
+Install dependencies
+Report environment
+Compile validation
+Test suite
+Release contract gate
+Shell script syntax
+Validate workflow YAML
+Build immutable Docker candidate
+Image boot smoke test
+CI summary
+Post Set up Python 3.12
+Post Checkout
+Complete job

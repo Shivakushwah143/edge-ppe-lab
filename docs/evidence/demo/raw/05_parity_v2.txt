@@ -1,0 +1,22 @@
+release                : v2
+registered model       : edge-ppe-detector version 2
+onnx sha256            : 43e14f6484290bfd44349e68dc14781c2e17268999ce0100b8a13e809f276fd4
+export opset           : 17
+parity_status          : passed
+
+tolerance min_iou              : 0.95
+tolerance max_confidence_delta : 0.03
+tolerance max_unmatched_frac   : 0.1
+
+MEASURED minimum_matched_iou   : 0.999982796774978
+MEASURED maximum_conf_delta    : 9.26136016876633e-07
+MEASURED unmatched_fraction    : 0.0
+MEASURED execution providers   : ['CPUExecutionProvider']
+images compared                : 5
+
+per-image detections (pytorch vs onnxruntime vs matched):
+  image1057.jpg      pt=2 onnx=2 matched=2 unmatched_pt=0 unmatched_onnx=0
+  image1083.jpg      pt=2 onnx=2 matched=2 unmatched_pt=0 unmatched_onnx=0
+  image1096.jpg      pt=2 onnx=2 matched=2 unmatched_pt=0 unmatched_onnx=0
+  image1107.jpg      pt=2 onnx=2 matched=2 unmatched_pt=0 unmatched_onnx=0
+  image115.jpg       pt=2 onnx=2 matched=2 unmatched_pt=0 unmatched_onnx=0

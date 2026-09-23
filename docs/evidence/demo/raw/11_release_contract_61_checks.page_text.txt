@@ -1,0 +1,89 @@
+Release contract gate: python scripts/verify_release_contract.py
+exactly what .github/workflows/ci.yml runs in the 'Release contract gate' step
+$ python scripts/verify_release_contract.py
+EdgePPE release contract gate
+repository root: /home/shiva_kushwah/projects/edge-ppe-lab
+
+[v1] release metadata
+  PASS  v1 release.json has all required keys
+  PASS  v1 registered model name is edge-ppe-detector
+  PASS  v1 records a concrete registry version
+  PASS  v1 onnx_sha256 is a sha256 hex digest
+  PASS  v1 parity_status is passed
+  PASS  v1 embedded onnx_contract matches onnx_contract.json
+
+[v1] ONNX I/O contract
+  PASS  v1 input contract [1, 3, 320, 320]
+  PASS  v1 opset is 17 in both files
+  PASS  v1 declares only CPUExecutionProvider
+  PASS  v1 has exactly one output tensor
+  PASS  v1 output name is output0
+  PASS  v1 output rows == 4 bbox + 3 classes
+  PASS  v1 output dtype is float32
+
+[v1] parity evidence
+  PASS  v1 parity report passed is true
+  PASS  v1 parity report has comparisons
+  PASS  v1 summary.image count matches comparison rows
+  PASS  v1 min matched IoU >= 0.95
+  PASS  v1 max confidence delta <= 0.03
+  PASS  v1 unmatched fraction <= 0.1
+  PASS  v1 parity ran on CPUExecutionProvider
+  PASS  v1 image1057.jpg has no unmatched detections
+  PASS  v1 image1083.jpg has no unmatched detections
+  PASS  v1 image1096.jpg has no unmatched detections
+  PASS  v1 image1107.jpg has no unmatched detections
+  PASS  v1 image115.jpg has no unmatched detections
+
+[v2] release metadata
+  PASS  v2 release.json has all required keys
+  PASS  v2 registered model name is edge-ppe-detector
+  PASS  v2 records a concrete registry version
+  PASS  v2 onnx_sha256 is a sha256 hex digest
+  PASS  v2 parity_status is passed
+  PASS  v2 embedded onnx_contract matches onnx_contract.json
+
+[v2] ONNX I/O contract
+  PASS  v2 input contract [1, 3, 320, 320]
+  PASS  v2 opset is 17 in both files
+  PASS  v2 declares only CPUExecutionProvider
+  PASS  v2 has exactly one output tensor
+  PASS  v2 output name is output0
+  PASS  v2 output rows == 4 bbox + 3 classes
+  PASS  v2 output dtype is float32
+
+[v2] parity evidence
+  PASS  v2 parity report passed is true
+  PASS  v2 parity report has comparisons
+  PASS  v2 summary.image count matches comparison rows
+  PASS  v2 min matched IoU >= 0.95
+  PASS  v2 max confidence delta <= 0.03
+  PASS  v2 unmatched fraction <= 0.1
+  PASS  v2 parity ran on CPUExecutionProvider
+  PASS  v2 image1057.jpg has no unmatched detections
+  PASS  v2 image1083.jpg has no unmatched detections
+  PASS  v2 image1096.jpg has no unmatched detections
+  PASS  v2 image1107.jpg has no unmatched detections
+  PASS  v2 image115.jpg has no unmatched detections
+
+[registry] release distinctness
+  PASS  releases map to distinct registry versions
+
+[dataset] canonical class contract
+  PASS  dataset class names are Person / Hardhat / NO-Hardhat
+  PASS  dataset defines 3 classes (4 bbox + 3 rows per anchor)
+
+[runtime] CPU-only image contract
+  PASS  runtime requirements contain no torch/CUDA/GPU packages
+  PASS  Dockerfile builds from a python slim base image
+  PASS  Dockerfile installs no CUDA/NVIDIA runtime
+  PASS  Dockerfile healthcheck probes /ready
+  PASS  Dockerfile exposes port 8000
+  PASS  Dockerfile drops to a non-root user
+
+[api] service contract
+  PASS  API exposes health/ready/model-info/predict/metrics
+  PASS  response schema for /predict is declared
+
+==============================================================
+CONTRACT GATE PASSED: 61 checks

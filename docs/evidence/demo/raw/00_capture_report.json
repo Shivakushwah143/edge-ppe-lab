@@ -1,0 +1,194 @@
+[
+  {
+    "id": "01_mlflow_runs",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 1177,
+      "height": 77,
+      "scrollHeight": 1177
+    },
+    "bytes": 165890,
+    "page": {
+      "w": 1600,
+      "h": 1177
+    },
+    "url": "http://127.0.0.1:5000/#/experiments/1/runs"
+  },
+  {
+    "id": "02_mlflow_v2_metrics",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 1196.5,
+      "height": 96.5,
+      "scrollHeight": 1197
+    },
+    "bytes": 184578,
+    "page": {
+      "w": 1600,
+      "h": 1197
+    },
+    "url": "http://127.0.0.1:5000/#/experiments/1/runs/133cc86b38ad4ec7971e60d8e1155c1f"
+  },
+  {
+    "id": "03_model_registry_v1_v2",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 1177,
+      "height": 77,
+      "scrollHeight": 1177
+    },
+    "bytes": 158730,
+    "page": {
+      "w": 1600,
+      "h": 1177
+    },
+    "url": "http://127.0.0.1:5000/#/models/edge-ppe-detector"
+  },
+  {
+    "id": "04_champion_alias_v1",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 1196.5,
+      "height": 96.5,
+      "scrollHeight": 1197
+    },
+    "bytes": 144523,
+    "page": {
+      "w": 1600,
+      "h": 1197
+    },
+    "url": "http://127.0.0.1:5000/#/models/edge-ppe-detector/versions/1"
+  },
+  {
+    "id": "05_onnx_parity_v1_v2",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 1212.8125,
+      "height": 96.5,
+      "scrollHeight": 1213
+    },
+    "bytes": 109569,
+    "page": {
+      "w": 1600,
+      "h": 1213
+    },
+    "url": "file:///C:/Users/shiva kushwah/AppData/Local/Temp/edgeppe-cap/html/05_onnx_parity_v1_v2.html"
+  },
+  {
+    "id": "06_systemd_active",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 1057.5,
+      "height": 77,
+      "scrollHeight": 1100
+    },
+    "bytes": 109930,
+    "page": {
+      "w": 1600,
+      "h": 1100
+    },
+    "url": "file:///C:/Users/shiva kushwah/AppData/Local/Temp/edgeppe-cap/html/06_systemd_active.html"
+  },
+  {
+    "id": "07_real_predict",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 719.640625,
+      "height": 96.5,
+      "scrollHeight": 1100
+    },
+    "bytes": 84373,
+    "page": {
+      "w": 1600,
+      "h": 1100
+    },
+    "url": "file:///C:/Users/shiva kushwah/AppData/Local/Temp/edgeppe-cap/html/07_real_predict.html"
+  },
+  {
+    "id": "08_prometheus_target_up",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 448.140625,
+      "height": 77,
+      "scrollHeight": 1100
+    },
+    "bytes": 48211,
+    "page": {
+      "w": 1600,
+      "h": 1100
+    },
+    "url": "http://127.0.0.1:9090/targets"
+  },
+  {
+    "id": "09_prometheus_metrics",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 514.875,
+      "height": 96.5,
+      "scrollHeight": 1100
+    },
+    "bytes": 49455,
+    "page": {
+      "w": 1600,
+      "h": 1100
+    },
+    "url": "http://127.0.0.1:9090/graph?g0.expr=model_info&g0.tab=1"
+  },
+  {
+    "id": "10_github_ci_green",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 1177,
+      "height": 77,
+      "scrollHeight": 1177
+    },
+    "bytes": 85879,
+    "page": {
+      "w": 1600,
+      "h": 1177
+    },
+    "url": "https://github.com/Shivakushwah143/edge-ppe-lab/actions/runs/35827278330"
+  },
+  {
+    "id": "11_release_contract_61_checks",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 1993.125,
+      "height": 96.5,
+      "scrollHeight": 1993
+    },
+    "bytes": 169428,
+    "page": {
+      "w": 1600,
+      "h": 1993
+    },
+    "url": "file:///C:/Users/shiva kushwah/AppData/Local/Temp/edgeppe-cap/html/11_release_contract_61_checks.html"
+  },
+  {
+    "id": "12_docker_build_ci_green",
+    "ok": true,
+    "missing": [],
+    "annotation": {
+      "bottom": 1341.25,
+      "height": 96.5,
+      "scrollHeight": 1341
+    },
+    "bytes": 99257,
+    "page": {
+      "w": 1600,
+      "h": 1341
+    },
+    "url": "https://github.com/Shivakushwah143/edge-ppe-lab/actions/runs/35827278330/job/107071676156"
+  }
+]

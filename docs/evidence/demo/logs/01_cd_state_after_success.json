@@ -1,0 +1,64 @@
+{
+  "history": [
+    {
+      "timestamp": "2026-09-22T16:12:50.941008+00:00",
+      "outcome": "success",
+      "deployed_image": "127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989",
+      "previous_image": "none",
+      "rollback": "not_needed",
+      "candidate_image": "127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989",
+      "candidate_digest": "127.0.0.1:5001/edge-ppe-lab@sha256:56436a4d6224b5983880084db2254a37fb3ddfa7f67f8a5fe5d18135b0581e20",
+      "release": "v1",
+      "model_version": "1",
+      "fault_injection": "none",
+      "git_sha": null,
+      "run_id": null,
+      "run_ref": null
+    },
+    {
+      "timestamp": "2026-09-22T16:14:05.186201+00:00",
+      "outcome": "failed",
+      "deployed_image": "127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989",
+      "previous_image": "127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989",
+      "rollback": "succeeded",
+      "candidate_image": "127.0.0.1:5001/edge-ppe-lab:422afe8513186a4a34c69ae13891d50aa2448811",
+      "candidate_digest": "127.0.0.1:5001/edge-ppe-lab@sha256:dd6adaab4116ea0b8813edd0a38fc8b1f9fee77f6b9d1983150d86932e432917",
+      "release": "v1",
+      "model_version": "1",
+      "fault_injection": "bad_model_path",
+      "git_sha": null,
+      "run_id": null,
+      "run_ref": null
+    },
+    {
+      "timestamp": "2026-09-22T16:15:07.242246+00:00",
+      "outcome": "success",
+      "deployed_image": "127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989",
+      "previous_image": "none",
+      "rollback": "not_needed",
+      "candidate_image": "127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989",
+      "candidate_digest": "127.0.0.1:5001/edge-ppe-lab@sha256:56436a4d6224b5983880084db2254a37fb3ddfa7f67f8a5fe5d18135b0581e20",
+      "release": "v1",
+      "model_version": "1",
+      "fault_injection": "none",
+      "git_sha": null,
+      "run_id": null,
+      "run_ref": null
+    }
+  ],
+  "last": {
+    "timestamp": "2026-09-22T16:15:07.242246+00:00",
+    "outcome": "success",
+    "deployed_image": "127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989",
+    "previous_image": "none",
+    "rollback": "not_needed",
+    "candidate_image": "127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989",
+    "candidate_digest": "127.0.0.1:5001/edge-ppe-lab@sha256:56436a4d6224b5983880084db2254a37fb3ddfa7f67f8a5fe5d18135b0581e20",
+    "release": "v1",
+    "model_version": "1",
+    "fault_injection": "none",
+    "git_sha": null,
+    "run_id": null,
+    "run_ref": null
+  }
+}

@@ -1,0 +1,12 @@
+Real inference: POST /predict (live, systemd instance :8000)
+(could not parse predict response: type str doesn't define __round__ method)
+probe image (real test-split file)
+data/processed/ppe-v1/images/test/image1003.jpg
+$ curl -s http://127.0.0.1:8000/model-info
+{"registered_model":"edge-ppe-detector","concrete_model_version":"1","registry_alias_used":"champion","format":"onnx","sha256":"e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681","execution_provider":["CPUExecutionProvider"],"loaded_timestamp":"2026-09-23T06:30:35.785079+00:00","source_run_id":"c283e4ec5f504ba9864354342a802d68","input_contract":{"name":"images","shape":[1,3,320,320],"dtype":"tensor(float)","layout":"NCHW","normalization":"RGB float32 / 255.0","resize":"aspect-preserving letterbox, fill=114","outputs":[{"name":"output0","shape":["1","7","2100"],"dtype":"tensor(float)"}]}}
+$ curl -s -F image=@… http://127.0.0.1:8000/predict
+{"model_version":"1","image_width":640,"image_height":640,"detections":[{"class_id":0,"class_name":"Person","confidence":0.919593,"bbox":{"x1":156.992,"y1":87.05,"x2":344.486,"y2":382.628}},{"class_id":1,"class_name":"Hardhat","confidence":0.592677,"bbox":{"x1":206.281,"y1":99.665,"x2":270.593,"y2":130.022}}]}
+HTTP_STATUS=200
+parsed detections
+<pre>{&quot;model_version&quot;:&quot;1&quot;,&quot;image_width&quot;:640,&quot;image_height&quot;:640,&quot;detections&quot;:[{&quot;class_id&quot;:0,&quot;class_name&quot;:&quot;Person&quot;,&quot;confidence&quot;:0.919593,&quot;bbox&quot;:{&quot;x1&quot;:156.992,&quot;y1&quot;:87.05,&quot;x2&quot;:344.486,&quot;y2&quot;:382.628}},{&quot;class_id&quot;:1,&quot;class_name&quot;:&quot;Hardhat&quot;,&quot;confidence&quot;:0.592677,&quot;bbox&quot;:{&quot;x1&quot;:206.281,&quot;y1&quot;:99.665,&quot;x2&quot;:270.593,&quot;y2&quot;:130.022}}]}
+HTTP_STATUS=200</pre>

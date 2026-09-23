@@ -1,0 +1,163 @@
+3.16.0
+GenAI
+Model training
+edge-ppe-lab
+Overview
+Training runs
+Observability
+Traces
+Sessions
+Evaluation
+Judges
+Review
+Datasets
+Evaluation runs
+Prompts & versions
+Playground
+Prompts
+Agent versions
+AI Gateway
+New
+Docs
+Settings
+edge-ppe-lab
+Runs
+edge-ppe-v2
+Overview
+Model metrics
+System metrics
+Traces
+Artifacts
+Description
+No description
+Metrics (8)
+Metric
+Value
+Models
+metrics_precision_B_
+0.5571446570824707
+registry_model
+metrics_recall_B_
+0.6117216117216118
+registry_model
+metrics_mAP50_B_
+0.592819785851068
+registry_model
+metrics_mAP50-95_B_
+0.26245204921499393
+registry_model
+fitness
+0.26245204921499393
+registry_model
+parity_min_iou
+0.999982796774978
+registry_model
+parity_max_confidence_delta
+9.26136016876633e-7
+registry_model
+parity_unmatched_fraction
+0
+registry_model
+Parameters (12)
+Parameter
+Value
+base_model
+yolo11n.pt
+epochs
+12
+imgsz
+320
+batch
+8
+device
+cpu
+workers
+2
+seed
+43
+fraction
+1.0
+lr0
+0.008
+dataset_version
+ppe-v1
+git_commit
+4aac66e3903e2dc2e55bcdec743e44c239c4dd58
+release
+v2
+Logged models (1)
+Model attributes
+No dataset
+Type
+Step
+Model name
+Status
+Created
+Registered models
+Dataset
+metrics_precision_B_
+Output
+0
+#137dae
+registry_model
+Ready
+21 hours ago
+edge-ppe-detector
+v2
+-
+0.5571446570824707
+About this run
+Created at
+09/22/2026, 02:07:29 PM
+Created by
+shiva_kushwah
+Experiment ID
+1
+Status
+Finished
+Run ID
+133cc86b38ad4ec7971e60d8e1155c1f
+Duration
+1.3h
+Source
+train.py
+main
+4aac66e
+Registered prompts
+—
+Datasets
+None
+Tags
+edge_ppe.release
+: v2
+edge_ppe.dataset_version
+: ppe-v1
+edge_ppe.git_commit
+: 4aac66e3903e2dc2e55bcdec743e44c239c4dd58
+edge_ppe.environment.python
+: 3.12.3
+edge_ppe.environment.torch
+: 2.14.0+cpu
+edge_ppe.environment.ultralytics
+: 8.4.153
+edge_ppe.environment.onnxruntime
+: 1.30.0
+edge_ppe.environment.platform
+: Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39
+edge_ppe.environment.cpu
+: Intel(R) Core(TM) i3-1005G1 CPU @ 1.20GHz
+edge_ppe.environment.gpu_present
+: false
+edge_ppe.environment_artifact
+: environment/environment.json
+Registered models
+edge-ppe-detector
+v2
+MLflow Assistant
+Beta
+Ask questions about your experiments, traces, evaluations, and more.
+Summarize this run.
+What parameters were used?
+How does this run compare to others?
+133cc86b...
+Claude Code

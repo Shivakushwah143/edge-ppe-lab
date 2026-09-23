@@ -1,0 +1,35 @@
+=== EdgePPE Lab :: docker runtime (container deployed by scripts/cd_deploy.sh) ===
+captured_at_utc : 2026-09-22T16:16:57Z
+
+--- docker ps --filter name=edgeppe-api ---
+edgeppe-api | Up 34 seconds (healthy) | 127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989 | 0.0.0.0:18000->8000/tcp, [::]:18000->8000/tcp
+
+--- docker inspect edgeppe-api (identity) ---
+image          = 127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989
+image_id       = sha256:2179528538b2a7bc3442abf8b286c5733d3c7de5bac6f029d49afca08a1b97dc
+config_user    = edgeppe
+revision_label = 373fd26c89258936df61688e51b4368b982ed989
+deployed_label = 127.0.0.1:5001/edge-ppe-lab:373fd26c89258936df61688e51b4368b982ed989
+started_at     = 2026-09-22T16:16:22.481887544Z
+restart_count  = 0
+
+--- docker stats --no-stream ---
+edgeppe-api | cpu=0.21% | mem=91.76MiB / 7.505GiB
+
+--- docker logs edgeppe-api (tail 12) ---
+INFO:     127.0.0.1:56820 - "GET /ready HTTP/1.1" 200 OK
+INFO:     172.17.0.1:56678 - "GET /metrics HTTP/1.1" 200 OK
+INFO:     172.17.0.1:56678 - "GET /metrics HTTP/1.1" 200 OK
+INFO:     172.17.0.1:56678 - "GET /metrics HTTP/1.1" 200 OK
+INFO:     172.17.0.1:56678 - "GET /metrics HTTP/1.1" 200 OK
+INFO:     172.17.0.1:44732 - "GET /health HTTP/1.1" 200 OK
+INFO:     172.17.0.1:44734 - "GET /ready HTTP/1.1" 200 OK
+INFO:     172.17.0.1:44744 - "GET /model-info HTTP/1.1" 200 OK
+INFO:     172.17.0.1:44746 - "GET /metrics HTTP/1.1" 200 OK
+INFO:     172.17.0.1:44748 - "GET /model-info HTTP/1.1" 200 OK
+INFO:     172.17.0.1:44762 - "GET /metrics HTTP/1.1" 200 OK
+INFO:     172.17.0.1:44762 - "GET /metrics HTTP/1.1" 200 OK
+
+--- image digest in the registry ---
+
+127.0.0.1:5001/edge-ppe-lab@sha256:56436a4d6224b5983880084db2254a37fb3ddfa7f67f8a5fe5d18135b0581e20

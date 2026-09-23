@@ -1,0 +1,83 @@
+3.16.0
+GenAI
+Model training
+Home
+Experiments
+Prompts
+MCP registry
+Beta
+AI Gateway
+New
+Docs
+Settings
+Registered Models
+edge-ppe-detector
+Version 1
+Promote model
+Registered At
+:
+09/22/2026, 02:03:37 PM
+Last Modified
+:
+09/22/2026, 02:03:37 PM
+Source Run
+:
+edge-ppe-v1
+Aliases
+:
+@ champion
+Stage (deprecated)
+:
+None
+New model registry UI
+Description 
+Edit
+Tags
+Name	Value	Actions
+ 
+	
+ 
+	
+ 
+
+checkpoint_artifact_path	
+checkpoints/best.pt
+	
+
+dataset_version	
+ppe-v1
+	
+
+onnx_artifact_path	
+deployment/v1/model.onnx
+	
+
+onnx_sha256	
+e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681
+	
+
+parity_status	
+passed
+	
+
+release	
+v1
+	
+
+release_status	
+champion
+	
+Add
+Schema
+Name
+Type
+Inputs (0)
+Outputs (0)
+MLflow Assistant
+Beta
+Ask questions about your experiments, traces, evaluations, and more.
+How do I get started with MLflow?
+What should I know about MLflow?
+Explain how MLflow Tracing works.
+edge-ppe...
+Claude Code

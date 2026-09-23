@@ -1,0 +1,38 @@
+=== EdgePPE Lab :: Prometheus observability ===
+captured_at_utc : 2026-09-22T16:17:19Z
+
+--- Prometheus target health (api/v1/targets, trimmed) ---
+  job=edgeppe-api instance=host.docker.internal:18000 health=up lastError='' lastScrape=2026-09-22T16:17:15.746483022Z
+
+--- PromQL: up{job="edgeppe-api"} ---
+{
+    "status": "success",
+    "data": {
+        "resultType": "vector",
+        "result": [
+            {
+                "metric": {
+                    "__name__": "up",
+                    "environment": "local",
+                    "instance": "host.docker.internal:18000",
+                    "job": "edgeppe-api",
+                    "runtime": "docker",
+                    "service": "edgeppe-api"
+                },
+                "value": [
+                    1790093839.129,
+                    "1"
+                ]
+            }
+        ]
+    }
+}
+
+--- application /metrics (grep key series) ---
+inference_requests_total 3.0
+detections_total{class_name="Person"} 2.0
+detections_total{class_name="Hardhat"} 2.0
+model_info{alias="local-explicit",format="onnx",provider="CPUExecutionProvider",registered_model="edge-ppe-detector",sha256="e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681",version="1"} 1.0
+
+--- PromQL: rate(inference_requests_total[5m]) ---
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"environment":"local","instance":"host.docker.internal:18000","job":"edgeppe-api","runtime":"docker","service":"edgeppe-api"},"value":[1790093839.188,"0.013811541065856246"]}]}}

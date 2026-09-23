@@ -1,0 +1,99 @@
+3.16.0
+GenAI
+Model training
+edge-ppe-lab
+Overview
+Training runs
+Observability
+Traces
+Sessions
+Evaluation
+Judges
+Review
+Datasets
+Evaluation runs
+Prompts & versions
+Playground
+Prompts
+Agent versions
+AI Gateway
+New
+Docs
+Settings
+Experiments
+edge-ppe-lab
+Training runs
+Views
+All time
+State:
+Active
+Datasets
+Sort: Created
+Columns
+Group by
+New run
+Run Name
+Created
+Dataset
+Duration
+Source
+Models
+#04867d
+edge-ppe-v2
+22 hours ago
+Pin run
+#04867d
+edge-ppe-v1
+22 hours ago
+Pin run
+#3ba65e
+edge-ppe-v1
+23 hours ago
+Pin run
+#115026
+edge-ppe-v1
+23 hours ago
+Pin run
+#a6630c
+edge-ppe-v1
+23 hours ago
+Pin run
+#277c43
+edge-ppe-v1
+23 hours ago
+Pin run
+-
+1.3h
+train.py
+edge-ppe-detector 
+v2
+-
+8.2min
+train.py
+edge-ppe-detector 
+v1
+-
+4.5min
+train.py
+edge-ppe-detector 
+v1
+-
+1.6min
+train.py
+-
+-
+1.9min
+train.py
+-
+-
+2.0min
+train.py
+-
+6 matching runs
+MLflow Assistant
+Beta
+Ask questions about your experiments, traces, evaluations, and more.
+Compare the selected runs.
+Which run performed best?
+What parameters differ between runs?
+Claude Code

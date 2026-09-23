@@ -1,0 +1,106 @@
+=== EdgePPE Lab :: systemd service + live API endpoints ===
+captured_at_utc : 2026-09-22T16:16:39Z
+host            : LAPTOP-ODTDH15K  user=shiva_kushwah
+git_sha         : 373fd26c89258936df61688e51b4368b982ed989
+
+--- systemctl is-active edge-ppe ---
+active
+--- systemctl status edge-ppe --no-pager (first 12 lines) ---
+● edge-ppe.service - EdgePPE Lab ONNX Inference API
+     Loaded: loaded (/etc/systemd/system/edge-ppe.service; enabled; preset: enabled)
+     Active: active (running) since Tue 2026-09-22 15:28:57 UTC; 47min ago
+       Docs: file:///home/shiva_kushwah/projects/edge-ppe-lab/START_HERE.md
+   Main PID: 1778 (uvicorn)
+      Tasks: 19 (limit: 9208)
+     Memory: 176.0M (peak: 176.8M)
+        CPU: 14.688s
+     CGroup: /system.slice/edge-ppe.service
+             └─1778 /home/shiva_kushwah/projects/edge-ppe-lab/.venv/bin/python /home/shiva_kushwah/projects/edge-ppe-lab/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+Sep 22 15:29:36 LAPTOP-ODTDH15K uvicorn[1778]: 2026-09-22 15:29:36,328 WARNING urllib3.connectionpool Retrying (Retry(total=3, connect=3, read=7, redirect=7, status=7)) after connection broken by 'NewConnectionError("HTTPConnection(host='127.0.0.1', port=5000): Failed to establish a new connection: [Errno 111] Connection refused")': /api/2.0/mlflow/registered-models/alias?name=edge-ppe-detector&alias=champion
+
+--- endpoint status codes on :8000 (systemd) and :18000 (docker, deployed by cd_deploy.sh) ---
+  :8000/health      -> 200
+  :8000/ready       -> 200
+  :8000/model-info  -> 200
+  :8000/metrics     -> 200
+  :18000/health      -> 200
+  :18000/ready       -> 200
+  :18000/model-info  -> 200
+  :18000/metrics     -> 200
+
+--- GET :8000/model-info (systemd, registry mode via champion alias) ---
+{
+    "registered_model": "edge-ppe-detector",
+    "concrete_model_version": "1",
+    "registry_alias_used": "champion",
+    "format": "onnx",
+    "sha256": "e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681",
+    "execution_provider": [
+        "CPUExecutionProvider"
+    ],
+    "loaded_timestamp": "2026-09-22T15:31:42.476564+00:00",
+    "source_run_id": "c283e4ec5f504ba9864354342a802d68",
+    "input_contract": {
+        "name": "images",
+        "shape": [
+            1,
+            3,
+            320,
+            320
+        ],
+        "dtype": "tensor(float)",
+        "layout": "NCHW",
+        "normalization": "RGB float32 / 255.0",
+        "resize": "aspect-preserving letterbox, fill=114",
+        "outputs": [
+            {
+                "name": "output0",
+                "shape": [
+                    "1",
+                    "7",
+                    "2100"
+                ],
+                "dtype": "tensor(float)"
+            }
+        ]
+    }
+}
+
+--- GET :18000/model-info (docker container edgeppe-api) ---
+{
+    "registered_model": "edge-ppe-detector",
+    "concrete_model_version": "1",
+    "registry_alias_used": "local-explicit",
+    "format": "onnx",
+    "sha256": "e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681",
+    "execution_provider": [
+        "CPUExecutionProvider"
+    ],
+    "loaded_timestamp": "2026-09-22T16:16:25.453899+00:00",
+    "source_run_id": null,
+    "input_contract": {
+        "name": "images",
+        "shape": [
+            1,
+            3,
+            320,
+            320
+        ],
+        "dtype": "tensor(float)",
+        "layout": "NCHW",
+        "normalization": "RGB float32 / 255.0",
+        "resize": "aspect-preserving letterbox, fill=114",
+        "outputs": [
+            {
+                "name": "output0",
+                "shape": [
+                    "1",
+                    "7",
+                    "2100"
+                ],
+                "dtype": "tensor(float)"
+            }
+        ]
+    }
+}

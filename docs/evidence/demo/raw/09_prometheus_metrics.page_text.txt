@@ -1,0 +1,19 @@
+Prometheus
+Alerts
+Graph
+Status
+Help
+Use local time
+Enable query history
+Enable autocomplete
+Enable highlighting
+Enable linter
+model_info
+Execute
+Table
+Graph
+Load time: 76ms   Resolution: 14s   Result series: 1
+model_info{alias="local-explicit", environment="local", format="onnx", instance="host.docker.internal:18000", job="edgeppe-api", provider="CPUExecutionProvider", registered_model="edge-ppe-detector", runtime="docker", service="edgeppe-api", sha256="e22e6aeb5bc0da6b2a7d3a59bc83b30053ab7d98f8cfcabad480a0038203f681", version="1"}
+	1
+Remove Panel
+Add Panel

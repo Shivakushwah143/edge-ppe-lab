@@ -1,0 +1,35 @@
+● edge-ppe.service - EdgePPE Lab ONNX Inference API
+     Loaded: loaded (/etc/systemd/system/edge-ppe.service; enabled; preset: enabled)
+     Active: active (running) since Wed 2026-09-23 06:30:08 UTC; 39min ago
+       Docs: file:///home/shiva_kushwah/projects/edge-ppe-lab/START_HERE.md
+   Main PID: 2076 (uvicorn)
+      Tasks: 22 (limit: 9208)
+     Memory: 192.3M (peak: 224.8M)
+        CPU: 13.701s
+     CGroup: /system.slice/edge-ppe.service
+             └─2076 /home/shiva_kushwah/projects/edge-ppe-lab/.venv/bin/python /home/shiva_kushwah/projects/edge-ppe-lab/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+Sep 23 06:31:22 LAPTOP-ODTDH15K uvicorn[2076]: INFO:     127.0.0.1:35736 - "POST /predict HTTP/1.1" 200 OK
+Sep 23 06:44:18 LAPTOP-ODTDH15K uvicorn[2076]: INFO:     127.0.0.1:51328 - "GET /health HTTP/1.1" 200 OK
+Sep 23 06:44:18 LAPTOP-ODTDH15K uvicorn[2076]: INFO:     127.0.0.1:51334 - "GET /ready HTTP/1.1" 200 OK
+Sep 23 06:44:18 LAPTOP-ODTDH15K uvicorn[2076]: INFO:     127.0.0.1:51348 - "GET /model-info HTTP/1.1" 200 OK
+Sep 23 06:55:40 LAPTOP-ODTDH15K uvicorn[2076]: INFO:     127.0.0.1:60460 - "GET / HTTP/1.1" 404 Not Found
+Sep 23 06:56:24 LAPTOP-ODTDH15K uvicorn[2076]: INFO:     127.0.0.1:50796 - "GET /health HTTP/1.1" 200 OK
+Sep 23 06:56:24 LAPTOP-ODTDH15K uvicorn[2076]: INFO:     127.0.0.1:50808 - "GET /ready HTTP/1.1" 200 OK
+Sep 23 06:56:24 LAPTOP-ODTDH15K uvicorn[2076]: INFO:     127.0.0.1:50810 - "GET /model-info HTTP/1.1" 200 OK
+Sep 23 06:56:24 LAPTOP-ODTDH15K uvicorn[2076]: INFO:     127.0.0.1:50814 - "GET /metrics HTTP/1.1" 200 OK
+Sep 23 07:04:20 LAPTOP-ODTDH15K uvicorn[2076]: INFO:     127.0.0.1:49642 - "GET /health HTTP/1.1" 200 OK
+
+Restart=on-failure
+MainPID=2076
+NRestarts=2
+ExecMainStartTimestamp=Wed 2026-09-23 06:30:08 UTC
+ExecStart={ path=/home/shiva_kushwah/projects/edge-ppe-lab/.venv/bin/uvicorn ; argv[]=/home/shiva_kushwah/projects/edge-ppe-lab/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 ; ignore_errors=no ; start_time=[Wed 2026-09-23 06:30:08 UTC] ; stop_time=[n/a] ; pid=2076 ; code=(null) ; status=0/0 }
+WorkingDirectory=/home/shiva_kushwah/projects/edge-ppe-lab
+User=shiva_kushwah
+ActiveState=active
+SubState=running
+
+/health      -> 200
+/ready       -> 200
+/model-info  -> 200

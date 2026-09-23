@@ -1,0 +1,60 @@
+Skip to content
+Navigation Menu
+Platform
+Solutions
+Resources
+Open Source
+Enterprise
+Pricing
+Search
+/
+Sign in
+Sign up
+Shivakushwah143
+/
+edge-ppe-lab
+Public
+Notifications
+Fork 0
+ Star 0
+Code
+Issues
+Pull requests
+Actions
+Projects
+Security and quality
+Insights
+edge-ppe-ci
+fix(cd): gate CD on a green CI run for the exact commit SHA #4
+Sign in to view logs
+Summary
+All jobs
+tests, contract gate, docker build
+Run details
+Usage
+Workflow file
+Triggered via push 
+Shivakushwah143
+pushed
+ 0fb3e11
+main
+Status
+Success
+Total duration
+56s
+Artifacts
+–
+ci.yml
+on: push
+tests, contract gate, docker build
+53s
+
+Oh hello! Nice to see you.
+
+Made with ❤️ by humans.txt
+
+Annotations
+1 warning
+tests, contract gate, docker build
+Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+Show more

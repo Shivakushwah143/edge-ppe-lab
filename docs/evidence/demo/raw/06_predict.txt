@@ -1,0 +1,70 @@
+=== EdgePPE Lab :: real inference on a real Construction-PPE test image ===
+captured_at_utc : 2026-09-22T16:17:06Z
+probe_image     : data/processed/ppe-v1/images/test/image1003.jpg
+probe_sha256    : 132e642eeaa562bab24041d09be4826644b2a3b3e09d47a72e45596a0bdc6fd1
+probe_bytes     : 44223
+
+--- POST :8000/predict (systemd, registry mode) ---
+{
+    "model_version": "1",
+    "image_width": 640,
+    "image_height": 640,
+    "detections": [
+        {
+            "class_id": 0,
+            "class_name": "Person",
+            "confidence": 0.919593,
+            "bbox": {
+                "x1": 156.992,
+                "y1": 87.05,
+                "x2": 344.486,
+                "y2": 382.628
+            }
+        },
+        {
+            "class_id": 1,
+            "class_name": "Hardhat",
+            "confidence": 0.592677,
+            "bbox": {
+                "x1": 206.281,
+                "y1": 99.665,
+                "x2": 270.593,
+                "y2": 130.022
+            }
+        }
+    ]
+}
+
+--- POST :18000/predict (docker container edgeppe-api) ---
+{
+    "model_version": "1",
+    "image_width": 640,
+    "image_height": 640,
+    "detections": [
+        {
+            "class_id": 0,
+            "class_name": "Person",
+            "confidence": 0.919593,
+            "bbox": {
+                "x1": 156.992,
+                "y1": 87.05,
+                "x2": 344.486,
+                "y2": 382.628
+            }
+        },
+        {
+            "class_id": 1,
+            "class_name": "Hardhat",
+            "confidence": 0.592677,
+            "bbox": {
+                "x1": 206.281,
+                "y1": 99.665,
+                "x2": 270.593,
+                "y2": 130.022
+            }
+        }
+    ]
+}
+
+--- negative control: POST a non-image, expect 400 (proves real decoding, not a canned reply) ---
+  /predict with random bytes -> 400
