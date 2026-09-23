@@ -25,7 +25,7 @@
 #   DEPLOY_ROOT        (default $HOME/projects/edge-ppe-lab) the real deployment tree
 #   RELEASE            (default v1) release directory holding the qualified model
 #   FAULT_INJECTION    (default none) "bad_model_path" to exercise rollback on purpose
-#   GITHUB_SHA, GITHUB_RUN_ID, GITHUB_REF_NAME  optional provenance
+#   CANDIDATE_SHA, GITHUB_SHA, GITHUB_RUN_ID, GITHUB_REF_NAME  optional provenance
 set -uo pipefail
 
 CONTAINER="${CONTAINER:-edgeppe-api}"
@@ -116,12 +116,16 @@ start_container() {
 }
 
 wait_for_http() {
-  local url="$1" want="$2" timeout="$3" deadline=$((SECONDS + $3))
+  # $SECONDS counts from shell start, so it must be baselined to report the wait
+  # itself. Reporting it raw made a 4s wait log as "after 66s" once the script had
+  # been running for a while, which would have made the deployment log misleading
+  # exactly in the evidence it is meant to provide.
+  local url="$1" want="$2" timeout="$3" deadline=$((SECONDS + $3)) started=$SECONDS
   while (( SECONDS < deadline )); do
     local code
     code="$(curl -s -o /dev/null -w '%{http_code}' "$url" 2>/dev/null || echo 000)"
     if [[ "$code" == "$want" ]]; then
-      log "  OK   $url -> $code (after $((SECONDS))s)"
+      log "  OK   $url -> $code (after $((SECONDS - started))s)"
       return 0
     fi
     sleep 2
@@ -193,7 +197,10 @@ entry = {
     "release": os.environ.get("RELEASE", "v1"),
     "model_version": os.environ.get("MODEL_VERSION"),
     "fault_injection": os.environ.get("FAULT_INJECTION", "none"),
-    "git_sha": os.environ.get("GITHUB_SHA"),
+    # CANDIDATE_SHA is the commit CI validated and this run deployed. GITHUB_SHA is
+    # only a fallback for a hand-run: under a workflow_run event github.sha is the
+    # tip of the default branch, which is not necessarily the commit deployed here.
+    "git_sha": os.environ.get("CANDIDATE_SHA") or os.environ.get("GITHUB_SHA"),
     "run_id": os.environ.get("GITHUB_RUN_ID"),
     "run_ref": os.environ.get("GITHUB_REF_NAME"),
 }
@@ -220,7 +227,7 @@ if [[ "$FAULT_INJECTION" == "bad_model_path" ]]; then
   CANDIDATE_MODEL_PATH="$CONTAINER_BROKEN_MODEL_PATH"
 fi
 
-export CANDIDATE_DIGEST RELEASE MODEL_VERSION FAULT_INJECTION IMAGE GITHUB_SHA GITHUB_RUN_ID GITHUB_REF_NAME
+export CANDIDATE_DIGEST RELEASE MODEL_VERSION FAULT_INJECTION IMAGE CANDIDATE_SHA GITHUB_SHA GITHUB_RUN_ID GITHUB_REF_NAME
 
 log "starting candidate container"
 start_container "$IMAGE" "$CANDIDATE_MODEL_PATH" || fail "docker run failed for candidate $IMAGE"

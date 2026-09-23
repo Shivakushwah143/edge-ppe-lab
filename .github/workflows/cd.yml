@@ -2,27 +2,43 @@ name: edge-ppe-cd
 
 # Continuous delivery for EdgePPE Lab.
 #
-#   trusted push/tag
-#     -> build one immutable image (tagged with the git SHA)
+# Delivery is GATED ON CI. This workflow deliberately no longer triggers on
+# `push`: it triggers when the `edge-ppe-ci` workflow *completes*, and every job
+# below then requires three things:
+#
+#   1. the triggering CI run concluded `success`,
+#   2. the triggering CI run was itself a `push` (never a `pull_request`), and
+#   3. the commit that is built, tagged, pushed and deployed is exactly the commit
+#      that CI validated - `github.event.workflow_run.head_sha`.
+#
+#   green CI for commit <sha>
+#     -> build one immutable image (tagged with <sha>)
 #     -> push it to GHCR
 #     -> self-hosted runner deploys exactly that reference
 #     -> runtime health gate (health / ready / model-info / real predict)
 #     -> automatic rollback to the previously running image if the gate fails
 #
 # Security posture:
-#   * There is NO pull_request trigger anywhere in this workflow, so untrusted PR
-#     code can never reach the self-hosted runner or the deployment credentials.
-#   * The self-hosted job is additionally guarded with an explicit event check.
-#   * Images are published only from trusted push/tag events on this repository.
+#   * `workflow_run` fires for a CI run however that run was started - including a
+#     pull request, and including one from a fork. "CI finished" is therefore NOT
+#     trusted on its own, and no job here acts on it until the event is verified to
+#     be a `push`. A pull request can never reach the self-hosted runner.
+#   * The deploy job repeats that guard where the runner is actually exposed, so a
+#     future edit to the build job cannot silently widen access to this machine.
+#   * Nothing is ever deployed from a commit whose CI has not already passed.
 #   * No long-lived registry secret exists: GHCR uses the ephemeral github.token
 #     scoped per job (packages:write to publish, packages:read to pull).
 #   * Fault injection is only honoured for workflow_dispatch, which requires write
 #     access to the repository.
 
 on:
-  push:
-    branches: [ main ]
-    tags: [ 'edgeppe-v*' ]
+  # Fires whenever the CI workflow finishes. The job-level guards turn that into
+  # "CI passed for a trusted push" - see the build job's `if`.
+  workflow_run:
+    workflows: [ "edge-ppe-ci" ]
+    types: [ completed ]
+  # Manual release path, and the only way to request fault injection. Requires
+  # write access to the repository.
   workflow_dispatch:
     inputs:
       fault_injection:
@@ -45,6 +61,17 @@ concurrency:
 jobs:
   build-and-push:
     name: build and push immutable image to GHCR
+    # The CD gate. `workflow_run` on its own only means CI *finished*, which is not
+    # enough to publish or deploy, so the three conditions below are the actual
+    # contract:
+    #   conclusion == success  - a red or cancelled CI build must never ship
+    #   event == push          - a pull_request CI run (including from a fork) is
+    #                            never trusted with packages:write or the runner
+    #   workflow_dispatch      - explicit human release; write access is required
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -54,9 +81,59 @@ jobs:
       image: ${{ steps.meta.outputs.image }}
       immutable_tag: ${{ steps.meta.outputs.immutable_tag }}
       digest: ${{ steps.push.outputs.digest }}
+      sha: ${{ steps.candidate.outputs.sha }}
+      ci_run: ${{ steps.candidate.outputs.ci_run }}
+      main: ${{ steps.candidate.outputs.main }}
     steps:
-      - name: Checkout
+      - name: Resolve the exact commit CI validated
+        id: candidate
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_run" ]]; then
+            # The commit whose CI run just succeeded. Deliberately NOT github.sha:
+            # for a workflow_run event github.sha is the tip of the default branch,
+            # which is a different commit as soon as main moves on - and tagging or
+            # deploying that would ship something CI never validated.
+            sha="${{ github.event.workflow_run.head_sha }}"
+            ci_run="${{ github.event.workflow_run.id }}"
+            head="${{ github.event.workflow_run.head_branch }}"
+          else
+            sha="${GITHUB_SHA}"
+            ci_run=""
+            head="${GITHUB_REF_NAME}"
+          fi
+          [[ -n "$sha" ]] || { echo "could not resolve a commit SHA"; exit 1; }
+          main="false"
+          [[ "$head" == "main" ]] && main="true"
+          {
+            echo "sha=${sha}"
+            echo "ci_run=${ci_run}"
+            echo "main=${main}"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Candidate commit"
+            echo ""
+            echo "| field | value |"
+            echo "|---|---|"
+            echo "| commit | \`${sha}\` |"
+            echo "| CI run | \`${ci_run:-manual workflow_dispatch}\` |"
+            echo "| CI conclusion | \`${{ github.event.workflow_run.conclusion || 'n/a' }}\` |"
+            echo "| CI event | \`${{ github.event.workflow_run.event || github.event_name }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout the validated commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.candidate.outputs.sha }}
+
+      - name: Assert the checkout is the commit CI validated
+        run: |
+          set -euo pipefail
+          checked_out="$(git rev-parse HEAD)"
+          validated="${{ steps.candidate.outputs.sha }}"
+          echo "checked out : ${checked_out}"
+          echo "CI validated: ${validated}"
+          test "$checked_out" = "$validated"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -72,7 +149,7 @@ jobs:
           # GHCR requires a lowercase repository path.
           owner="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
           image="ghcr.io/${owner}/edge-ppe-lab"
-          tag="${GITHUB_SHA}"
+          tag="${{ steps.candidate.outputs.sha }}"
           echo "image=${image}" >> "$GITHUB_OUTPUT"
           echo "immutable_tag=${image}:${tag}" >> "$GITHUB_OUTPUT"
           echo "### Immutable reference" >> "$GITHUB_STEP_SUMMARY"
@@ -82,7 +159,7 @@ jobs:
 
       - name: Build image
         run: |
-          docker build --build-arg GIT_SHA="${GITHUB_SHA}" \
+          docker build --build-arg GIT_SHA="${{ steps.candidate.outputs.sha }}" \
             -f docker/Dockerfile -t "${{ steps.meta.outputs.immutable_tag }}" .
 
       - name: Push immutable tag
@@ -96,7 +173,7 @@ jobs:
           echo "digest: ${digest}"
 
       - name: Maintain floating latest tag for main
-        if: github.ref == 'refs/heads/main'
+        if: steps.candidate.outputs.main == 'true'
         run: |
           set -euo pipefail
           # Convenience only. Deployment always uses the immutable SHA tag above.
@@ -108,9 +185,15 @@ jobs:
   deploy:
     name: deploy on self-hosted runner
     needs: build-and-push
-    # Belt and braces: this workflow cannot be triggered by a pull request at all,
-    # and the guard makes that explicit so a future edit cannot silently break it.
-    if: github.event_name != 'pull_request'
+    # Belt and braces, and the guard that matters most: it is stated here, on the
+    # job that actually runs on the self-hosted machine, so a future edit to the
+    # build job cannot silently expose this host to untrusted code. `workflow_run`
+    # fires for pull_request CI runs too; those are rejected here and in the build
+    # job, and a red CI run never reaches the runner either.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
     runs-on: [ self-hosted, linux, x64, edgeppe-deploy ]
     timeout-minutes: 20
     environment: edgeppe-production
@@ -119,6 +202,10 @@ jobs:
       packages: read
     env:
       IMAGE: ${{ needs.build-and-push.outputs.immutable_tag }}
+      # The commit CI validated. Passed explicitly because for a workflow_run event
+      # github.sha is the tip of the default branch, not this commit, and the
+      # deployment state file records it as provenance.
+      CANDIDATE_SHA: ${{ needs.build-and-push.outputs.sha }}
       CONTAINER: edgeppe-api
       HOST_PORT: '18000'
       DEPLOY_ROOT: /home/shiva_kushwah/projects/edge-ppe-lab
@@ -127,6 +214,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build-and-push.outputs.sha }}
 
       - name: Runner and toolchain identity
         run: |
@@ -134,6 +223,7 @@ jobs:
           echo "kernel   : $(uname -sr)"
           echo "docker   : $(docker --version)"
           echo "candidate: ${IMAGE}"
+          echo "commit   : ${CANDIDATE_SHA}"
           echo "fault    : ${FAULT_INJECTION}"
 
       - name: Log in to GHCR for pull
@@ -149,7 +239,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cd-deploy-log-${{ github.sha }}
+          name: cd-deploy-log-${{ needs.build-and-push.outputs.sha }}
           path: ${{ env.DEPLOY_ROOT }}/var/deployment/cd_deploy.log
           if-no-files-found: warn
 
